@@ -33,6 +33,9 @@ export class BootScene extends Phaser.Scene {
     // Load bullet sprite
     this.load.image("bullet", "/assets/bullet.svg");
 
+    // Load room items
+    this.load.image("controlRoomComputer", "/assets/controlRoomComputer.svg");
+
     // Create tile texture
     this.createTileTexture();
   }

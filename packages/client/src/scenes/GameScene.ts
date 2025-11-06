@@ -36,6 +36,7 @@ export class GameScene extends Phaser.Scene {
   private minimapPlayerDot!: Phaser.GameObjects.Circle;
   private minimapOtherPlayerDots: Map<string, Phaser.GameObjects.Circle> = new Map();
   private rooms: Map<string, Room> = new Map();
+  private roomItems: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
 
   // Console
   private consoleVisible: boolean = false;
@@ -621,6 +622,19 @@ export class GameScene extends Phaser.Scene {
         this.rooms.set(key, room);
         // Redraw minimap with room types
         this.redrawMinimapRoomTypes();
+        // Place room items
+        this.placeRoomItem(room, key);
+      });
+
+      // Listen for room removal (e.g., on reset)
+      room.state.rooms.onRemove((room: Room, key: string) => {
+        this.rooms.delete(key);
+        // Remove room item sprite if it exists
+        const item = this.roomItems.get(key);
+        if (item) {
+          item.destroy();
+          this.roomItems.delete(key);
+        }
       });
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
@@ -640,6 +654,11 @@ export class GameScene extends Phaser.Scene {
 
     // Add collision with walls
     this.physics.add.collider(sprite, this.walls);
+
+    // Add collision with all room items (computers, etc.)
+    this.roomItems.forEach((item) => {
+      this.physics.add.collider(sprite, item);
+    });
 
     this.otherPlayers.set(sessionId, sprite);
 
@@ -681,6 +700,33 @@ export class GameScene extends Phaser.Scene {
         minimapDot.destroy();
         this.minimapOtherPlayerDots.delete(sessionId);
       }
+    }
+  }
+
+  private placeRoomItem(room: Room, key: string) {
+    // Only place items in specific room types
+    if (room.roomType === ROOM_TYPES.SECURITY_ROOM) {
+      // Calculate center position of the room in pixels
+      const centerX = (room.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2) * GAME_CONFIG.TILE_SIZE;
+      const centerY = (room.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2) * GAME_CONFIG.TILE_SIZE;
+
+      // Create the control room computer as a static physics sprite
+      const computer = this.physics.add.staticSprite(centerX, centerY, "controlRoomComputer");
+      computer.setDepth(5); // Below player (10) but above floor
+
+      // Set up collision body to match the sprite size
+      computer.refreshBody();
+
+      // Add collision with player
+      this.physics.add.collider(this.player, computer);
+
+      // Add collision with other players
+      this.otherPlayers.forEach((otherPlayer) => {
+        this.physics.add.collider(otherPlayer, computer);
+      });
+
+      // Store the sprite for cleanup
+      this.roomItems.set(key, computer);
     }
   }
 
