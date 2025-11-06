@@ -10,8 +10,9 @@
     "dev:client": "npm run dev --workspace=@louvre-heist/client",
     "dev:server": "npm run dev --workspace=@louvre-heist/server",
     "build": "npm run build --workspaces",
-    "build:client": "npm run build --workspace=@louvre-heist/client",
-    "build:server": "npm run build --workspace=@louvre-heist/server"
+    "build:shared": "npm run build --workspace=@louvre-heist/shared",
+    "build:client": "npm run build:shared && npm run build --workspace=@louvre-heist/client",
+    "build:server": "npm run build:shared && npm run build --workspace=@louvre-heist/server"
   },
   "devDependencies": {
     "typescript": "^5.3.3"
