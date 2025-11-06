@@ -11,6 +11,9 @@ export class BootScene extends Phaser.Scene {
     this.load.image('playerWalk1', '/assets/pinkWalk1.svg');
     this.load.image('playerWalk2', '/assets/pinkWalk2.svg');
 
+    // Load wall sprite
+    this.load.image('wall', '/assets/wall.svg');
+
     // Create tile texture
     this.createTileTexture();
   }

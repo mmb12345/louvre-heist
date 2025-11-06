@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GAME_CONFIG } from '@louvre-heist/shared';
 
 export class GameScene extends Phaser.Scene {
-  private player!: Phaser.GameObjects.Sprite;
+  private player!: Phaser.Physics.Arcade.Sprite;
   private wasdKeys!: {
     W: Phaser.Input.Keyboard.Key;
     A: Phaser.Input.Keyboard.Key;
@@ -10,6 +10,7 @@ export class GameScene extends Phaser.Scene {
     D: Phaser.Input.Keyboard.Key;
   };
   private currentAngle: number = 0; // Track current facing direction
+  private walls!: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -19,12 +20,20 @@ export class GameScene extends Phaser.Scene {
     // Create background grid with room divisions
     this.createBackground();
 
+    // Create walls group
+    this.walls = this.physics.add.staticGroup();
+    this.createWalls();
+
     // Create player sprite at center
     const startX = (GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE) / 2;
     const startY = (GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE) / 2;
 
-    this.player = this.add.sprite(startX, startY, 'playerStill');
+    this.player = this.physics.add.sprite(startX, startY, 'playerStill');
     this.player.setDepth(10);
+    this.player.setCollideWorldBounds(true);
+
+    // Add collision between player and walls
+    this.physics.add.collider(this.player, this.walls);
 
     // Create walking animation
     this.anims.create({
@@ -78,28 +87,165 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Draw room dividers (every 20 tiles = 1 room)
-    const graphics = this.add.graphics();
-    graphics.lineStyle(2, 0xffffff, 0.3);
+  }
 
-    for (let i = 0; i <= GAME_CONFIG.ROOMS_GRID; i++) {
-      const pos = i * GAME_CONFIG.ROOM_SIZE * GAME_CONFIG.TILE_SIZE;
+  private createWalls() {
+    const DOOR_SIZE = 3; // Door width in tiles
+    const MIN_DOORS_PER_ROOM = 3;
 
-      // Vertical lines
-      graphics.lineBetween(
-        pos,
+    // Track doors for each room (roomX, roomY, side) -> door positions
+    const roomDoors: Map<string, Set<number>> = new Map();
+
+    // Helper to get/create door set for a room side
+    const getDoorSet = (roomX: number, roomY: number, side: string): Set<number> => {
+      const key = `${roomX},${roomY},${side}`;
+      if (!roomDoors.has(key)) {
+        roomDoors.set(key, new Set());
+      }
+      return roomDoors.get(key)!;
+    };
+
+    // Generate doors for each room
+    for (let roomY = 0; roomY < GAME_CONFIG.ROOMS_GRID; roomY++) {
+      for (let roomX = 0; roomX < GAME_CONFIG.ROOMS_GRID; roomX++) {
+        const sides = ['top', 'right', 'bottom', 'left'];
+        const availableSides = [...sides];
+
+        // Ensure at least 3 doors per room
+        for (let i = 0; i < MIN_DOORS_PER_ROOM; i++) {
+          if (availableSides.length === 0) break;
+
+          const sideIndex = Math.floor(Math.random() * availableSides.length);
+          const side = availableSides[sideIndex];
+          availableSides.splice(sideIndex, 1);
+
+          // Pick a random position for the door (avoid corners)
+          const doorPos = Math.floor(Math.random() * (GAME_CONFIG.ROOM_SIZE - DOOR_SIZE - 4)) + 2;
+
+          getDoorSet(roomX, roomY, side).add(doorPos);
+        }
+
+        // Maybe add a 4th door randomly
+        if (Math.random() < 0.3 && availableSides.length > 0) {
+          const side = availableSides[Math.floor(Math.random() * availableSides.length)];
+          const doorPos = Math.floor(Math.random() * (GAME_CONFIG.ROOM_SIZE - DOOR_SIZE - 4)) + 2;
+          getDoorSet(roomX, roomY, side).add(doorPos);
+        }
+      }
+    }
+
+    // Create walls between rooms
+    for (let roomY = 0; roomY < GAME_CONFIG.ROOMS_GRID; roomY++) {
+      for (let roomX = 0; roomX < GAME_CONFIG.ROOMS_GRID; roomX++) {
+        // Right wall (vertical)
+        if (roomX < GAME_CONFIG.ROOMS_GRID - 1) {
+          const wallX = (roomX + 1) * GAME_CONFIG.ROOM_SIZE;
+          const currentDoors = getDoorSet(roomX, roomY, 'right');
+          const neighborDoors = getDoorSet(roomX + 1, roomY, 'left');
+          const allDoors = new Set([...currentDoors, ...neighborDoors]);
+
+          for (let tileY = 0; tileY < GAME_CONFIG.ROOM_SIZE; tileY++) {
+            let isDoor = false;
+            for (const doorPos of allDoors) {
+              if (tileY >= doorPos && tileY < doorPos + DOOR_SIZE) {
+                isDoor = true;
+                break;
+              }
+            }
+
+            if (!isDoor) {
+              const wall = this.walls.create(
+                wallX * GAME_CONFIG.TILE_SIZE,
+                (roomY * GAME_CONFIG.ROOM_SIZE + tileY) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+                'wall'
+              );
+              wall.setOrigin(0, 0.5);
+              wall.refreshBody();
+            }
+          }
+        }
+
+        // Bottom wall (horizontal)
+        if (roomY < GAME_CONFIG.ROOMS_GRID - 1) {
+          const wallY = (roomY + 1) * GAME_CONFIG.ROOM_SIZE;
+          const currentDoors = getDoorSet(roomX, roomY, 'bottom');
+          const neighborDoors = getDoorSet(roomX, roomY + 1, 'top');
+          const allDoors = new Set([...currentDoors, ...neighborDoors]);
+
+          for (let tileX = 0; tileX < GAME_CONFIG.ROOM_SIZE; tileX++) {
+            let isDoor = false;
+            for (const doorPos of allDoors) {
+              if (tileX >= doorPos && tileX < doorPos + DOOR_SIZE) {
+                isDoor = true;
+                break;
+              }
+            }
+
+            if (!isDoor) {
+              const wall = this.walls.create(
+                (roomX * GAME_CONFIG.ROOM_SIZE + tileX) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+                wallY * GAME_CONFIG.TILE_SIZE,
+                'wall'
+              );
+              wall.setOrigin(0.5, 0);
+              wall.setAngle(90);
+              wall.refreshBody();
+            }
+          }
+        }
+      }
+    }
+
+    // Create outer boundary walls
+    this.createBoundaryWalls();
+  }
+
+  private createBoundaryWalls() {
+    const mapWidth = GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE;
+    const mapHeight = GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE;
+
+    // Top and bottom walls
+    for (let x = 0; x < GAME_CONFIG.MAP_WIDTH; x++) {
+      // Top
+      const topWall = this.walls.create(
+        x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
         0,
-        pos,
-        GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE
+        'wall'
       );
+      topWall.setOrigin(0.5, 0);
+      topWall.setAngle(90);
+      topWall.refreshBody();
 
-      // Horizontal lines
-      graphics.lineBetween(
-        0,
-        pos,
-        GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE,
-        pos
+      // Bottom
+      const bottomWall = this.walls.create(
+        x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+        mapHeight,
+        'wall'
       );
+      bottomWall.setOrigin(0.5, 0);
+      bottomWall.setAngle(90);
+      bottomWall.refreshBody();
+    }
+
+    // Left and right walls
+    for (let y = 0; y < GAME_CONFIG.MAP_HEIGHT; y++) {
+      // Left
+      const leftWall = this.walls.create(
+        0,
+        y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+        'wall'
+      );
+      leftWall.setOrigin(0, 0.5);
+      leftWall.refreshBody();
+
+      // Right
+      const rightWall = this.walls.create(
+        mapWidth,
+        y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+        'wall'
+      );
+      rightWall.setOrigin(0, 0.5);
+      rightWall.refreshBody();
     }
   }
 
@@ -165,14 +311,9 @@ export class GameScene extends Phaser.Scene {
       this.player.setAngle(this.currentAngle);
     }
 
-    // Update player position with boundary checking
-    const newX = this.player.x + velocityX;
-    const newY = this.player.y + velocityY;
-
-    const maxX = GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE;
-    const maxY = GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE;
-
-    this.player.x = Phaser.Math.Clamp(newX, 0, maxX);
-    this.player.y = Phaser.Math.Clamp(newY, 0, maxY);
+    // Update player velocity (physics handles collision)
+    // Convert to pixels per second for physics
+    const speed = GAME_CONFIG.PLAYER_SPEED * 60; // Convert to pixels per second
+    this.player.setVelocity(velocityX * 60, velocityY * 60);
   }
 }
