@@ -1,10 +1,10 @@
 export const GAME_CONFIG = {
   TILE_SIZE: 32,
   PLAYER_SIZE: 32, // Player sprite size in pixels
-  ROOM_SIZE: 20, // Room is 20x20 tiles
+  ROOM_SIZE: 40, // Room is 40x40 tiles
   ROOMS_GRID: 10, // 10x10 grid of rooms
-  MAP_WIDTH: 200, // 10 rooms * 20 tiles = 200 tiles
-  MAP_HEIGHT: 200,
+  MAP_WIDTH: 400, // 10 rooms * 40 tiles = 400 tiles
+  MAP_HEIGHT: 400,
   PLAYER_SPEED: 5, // Movement speed in pixels per frame
 };
 
