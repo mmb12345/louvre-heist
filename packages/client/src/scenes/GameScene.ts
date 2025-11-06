@@ -130,7 +130,7 @@ export class GameScene extends Phaser.Scene {
 
     if (isMoving) {
       // Play walk animation if not already playing
-      if (this.player.anims.currentAnim?.key !== 'walk') {
+      if (!this.player.anims.isPlaying) {
         this.player.play('walk');
       }
     } else {
