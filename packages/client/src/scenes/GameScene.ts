@@ -1471,6 +1471,9 @@ export class GameScene extends Phaser.Scene {
     this.isShooting = true;
     this.shootCooldown = 200; // 500ms cooldown
 
+    // Play shoot sound
+    this.sound.play("shoot", { volume: 0.5 });
+
     // Change to shoot sprite
     this.player.setTexture(`${this.playerColor}Shoot`);
     this.player.setAngle(this.currentAngle);

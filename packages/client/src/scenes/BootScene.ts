@@ -33,6 +33,9 @@ export class BootScene extends Phaser.Scene {
     // Load bullet sprite
     this.load.image("bullet", "/assets/bullet.svg");
 
+    // Load sound effects
+    this.load.audio("shoot", "/assets/shoot.mp3");
+
     // Load room items
     this.load.image("controlRoomComputer", "/assets/controlRoomComputer.svg");
 
