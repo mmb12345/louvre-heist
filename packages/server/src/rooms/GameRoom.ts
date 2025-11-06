@@ -4,7 +4,6 @@ import {
   GAME_CONFIG,
   OBJECTIVES,
   ROOM_TYPES,
-  PATROL_PATTERNS,
   type PlayerInput,
   type PatrolPattern
 } from '@louvre-heist/shared';
@@ -12,6 +11,7 @@ import {
 export class GameRoom extends Room<GameState> {
   private gameLoop!: NodeJS.Timeout;
   private guardUpdateInterval!: NodeJS.Timeout;
+  private guardPatrolPatterns: Map<string, PatrolPattern> = new Map();
 
   onCreate(options: any) {
     this.setState(new GameState());
@@ -21,6 +21,11 @@ export class GameRoom extends Room<GameState> {
     this.setupMessageHandlers();
     this.initializeObjectives();
     this.initializeGuards();
+
+    // Start guard movement immediately
+    this.guardUpdateInterval = setInterval(() => {
+      this.updateGuards();
+    }, 500);
   }
 
   private generateMap() {
@@ -264,8 +269,9 @@ export class GameRoom extends Room<GameState> {
         // Regenerate map
         this.generateMap();
 
-        // Clear existing guards and respawn them
+        // Clear existing guards and their patrol patterns
         this.state.guards.clear();
+        this.guardPatrolPatterns.clear();
         this.initializeGuards();
 
         // Reset all player positions to starting location (bottom middle room)
@@ -327,6 +333,46 @@ export class GameRoom extends Room<GameState> {
     this.state.objectives.set('exit', exit);
   }
 
+  private generateRoomPatrolPattern(roomGridX: number, roomGridY: number, patternType: number): PatrolPattern {
+    // Calculate room boundaries
+    const roomStartX = roomGridX * GAME_CONFIG.ROOM_SIZE;
+    const roomStartY = roomGridY * GAME_CONFIG.ROOM_SIZE;
+    const margin = 7; // Stay away from walls/doors
+    const minX = roomStartX + margin;
+    const maxX = roomStartX + GAME_CONFIG.ROOM_SIZE - margin;
+    const minY = roomStartY + margin;
+    const maxY = roomStartY + GAME_CONFIG.ROOM_SIZE - margin;
+    const centerX = roomStartX + GAME_CONFIG.ROOM_SIZE / 2;
+    const centerY = roomStartY + GAME_CONFIG.ROOM_SIZE / 2;
+
+    switch (patternType % 4) {
+      case 0: // Horizontal patrol
+        return [
+          { x: minX, y: centerY },
+          { x: maxX, y: centerY },
+        ];
+      case 1: // Vertical patrol
+        return [
+          { x: centerX, y: minY },
+          { x: centerX, y: maxY },
+        ];
+      case 2: // Diagonal patrol
+        return [
+          { x: minX, y: minY },
+          { x: maxX, y: maxY },
+        ];
+      case 3: // Square patrol
+        return [
+          { x: minX, y: minY },
+          { x: maxX, y: minY },
+          { x: maxX, y: maxY },
+          { x: minX, y: maxY },
+        ];
+      default:
+        return [{ x: centerX, y: centerY }];
+    }
+  }
+
   private initializeGuards() {
     // Get all rooms
     const allRooms = Array.from(this.state.rooms.values());
@@ -351,20 +397,17 @@ export class GameRoom extends Room<GameState> {
       for (let i = 0; i < numGuardsInRoom; i++) {
         const guard = new Guard();
         guard.id = `guard_${guardIndex}`;
-        guard.patrolPattern = guardIndex % PATROL_PATTERNS.length; // Cycle through available patterns
 
-        // Generate random position within the room (avoiding edges)
-        // Leave 5 tiles margin from each edge to avoid spawning in walls/doors
-        const margin = 5;
-        const minOffset = margin;
-        const maxOffset = GAME_CONFIG.ROOM_SIZE - margin;
+        // Generate a room-relative patrol pattern
+        const patternType = guardIndex % 4; // 4 different pattern types
+        const customPattern = this.generateRoomPatrolPattern(room.gridX, room.gridY, patternType);
+        this.guardPatrolPatterns.set(guard.id, customPattern);
 
-        const randomOffsetX = Math.random() * (maxOffset - minOffset) + minOffset;
-        const randomOffsetY = Math.random() * (maxOffset - minOffset) + minOffset;
+        guard.patrolPattern = patternType; // Store pattern type for reference
 
-        // Spawn guard at random position in the room (in tile coordinates)
-        guard.x = room.gridX * GAME_CONFIG.ROOM_SIZE + randomOffsetX;
-        guard.y = room.gridY * GAME_CONFIG.ROOM_SIZE + randomOffsetY;
+        // Spawn guard at first patrol point
+        guard.x = customPattern[0].x;
+        guard.y = customPattern[0].y;
         guard.patrolIndex = 0;
 
         this.state.guards.set(guard.id, guard);
@@ -422,7 +465,10 @@ export class GameRoom extends Room<GameState> {
     if (this.state.gameOver) return;
 
     this.state.guards.forEach((guard) => {
-      const pattern = PATROL_PATTERNS[guard.patrolPattern];
+      // Get the custom patrol pattern for this guard
+      const pattern = this.guardPatrolPatterns.get(guard.id);
+      if (!pattern || pattern.length === 0) return;
+
       const targetPoint = pattern[guard.patrolIndex];
 
       // Move guard towards target
