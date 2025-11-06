@@ -39,7 +39,8 @@ export class GameScene extends Phaser.Scene {
   // Minimap
   private minimapContainer!: Phaser.GameObjects.Container;
   private minimapPlayerDot!: Phaser.GameObjects.Circle;
-  private minimapOtherPlayerDots: Map<string, Phaser.GameObjects.Circle> = new Map();
+  private minimapOtherPlayerDots: Map<string, Phaser.GameObjects.Circle> =
+    new Map();
   private rooms: Map<string, Room> = new Map();
   private roomItems: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
 
@@ -170,7 +171,14 @@ export class GameScene extends Phaser.Scene {
     this.minimapContainer.setDepth(100);
 
     // Background
-    const bg = this.add.rectangle(0, 0, minimapSize, minimapSize, 0x000000, 0.7);
+    const bg = this.add.rectangle(
+      0,
+      0,
+      minimapSize,
+      minimapSize,
+      0x000000,
+      0.7
+    );
     bg.setOrigin(0);
     this.minimapContainer.add(bg);
 
@@ -185,21 +193,11 @@ export class GameScene extends Phaser.Scene {
     gridGraphics.lineStyle(1, 0xffffff, 0.3);
 
     for (let y = 0; y <= GAME_CONFIG.ROOMS_GRID; y++) {
-      gridGraphics.lineBetween(
-        0,
-        y * roomSize,
-        minimapSize,
-        y * roomSize
-      );
+      gridGraphics.lineBetween(0, y * roomSize, minimapSize, y * roomSize);
     }
 
     for (let x = 0; x <= GAME_CONFIG.ROOMS_GRID; x++) {
-      gridGraphics.lineBetween(
-        x * roomSize,
-        0,
-        x * roomSize,
-        minimapSize
-      );
+      gridGraphics.lineBetween(x * roomSize, 0, x * roomSize, minimapSize);
     }
 
     gridGraphics.setPosition(0, 0);
@@ -226,7 +224,7 @@ export class GameScene extends Phaser.Scene {
   private drawMinimapWalls(roomSize: number) {
     const DOOR_SIZE = 9;
     const wallGraphics = this.add.graphics();
-    wallGraphics.lineStyle(2, 0x8B7355, 0.8);
+    wallGraphics.lineStyle(2, 0x8b7355, 0.8);
 
     // Draw interior walls with doors
     for (let roomY = 0; roomY < GAME_CONFIG.ROOMS_GRID; roomY++) {
@@ -239,8 +237,10 @@ export class GameScene extends Phaser.Scene {
 
           // Draw wall segments around door
           const wallStartY = roomY * roomSize;
-          const doorStartY = wallStartY + (doorStart / GAME_CONFIG.ROOM_SIZE) * roomSize;
-          const doorEndY = wallStartY + (doorEnd / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const doorStartY =
+            wallStartY + (doorStart / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const doorEndY =
+            wallStartY + (doorEnd / GAME_CONFIG.ROOM_SIZE) * roomSize;
           const wallEndY = (roomY + 1) * roomSize;
 
           wallGraphics.lineBetween(wallX, wallStartY, wallX, doorStartY);
@@ -255,8 +255,10 @@ export class GameScene extends Phaser.Scene {
 
           // Draw wall segments around door
           const wallStartX = roomX * roomSize;
-          const doorStartX = wallStartX + (doorStart / GAME_CONFIG.ROOM_SIZE) * roomSize;
-          const doorEndX = wallStartX + (doorEnd / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const doorStartX =
+            wallStartX + (doorStart / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const doorEndX =
+            wallStartX + (doorEnd / GAME_CONFIG.ROOM_SIZE) * roomSize;
           const wallEndX = (roomX + 1) * roomSize;
 
           wallGraphics.lineBetween(wallStartX, wallY, doorStartX, wallY);
@@ -273,7 +275,8 @@ export class GameScene extends Phaser.Scene {
     const roomSize = minimapSize / GAME_CONFIG.ROOMS_GRID;
 
     // Remove any existing room type graphics
-    const existingRoomGraphics = this.minimapContainer.getByName("roomTypesGraphics");
+    const existingRoomGraphics =
+      this.minimapContainer.getByName("roomTypesGraphics");
     if (existingRoomGraphics) {
       existingRoomGraphics.destroy();
     }
@@ -284,12 +287,12 @@ export class GameScene extends Phaser.Scene {
 
     // Define colors for each room type
     const roomColors: Record<string, number> = {
-      [ROOM_TYPES.GUARD_ROOM]: 0xFF0000,      // Red
-      [ROOM_TYPES.SECURITY_ROOM]: 0xFF6600,   // Orange
-      [ROOM_TYPES.CROWN_ROOM]: 0xFFD700,      // Gold
-      [ROOM_TYPES.LOOT_ROOM]: 0x00FF00,       // Green
-      [ROOM_TYPES.EXIT]: 0x00FFFF,            // Cyan
-      [ROOM_TYPES.HALLWAY]: 0x000000,         // Transparent/black
+      [ROOM_TYPES.GUARD_ROOM]: 0xff0000, // Red
+      [ROOM_TYPES.SECURITY_ROOM]: 0xff6600, // Orange
+      [ROOM_TYPES.CROWN_ROOM]: 0xffd700, // Gold
+      [ROOM_TYPES.LOOT_ROOM]: 0x00ff00, // Green
+      [ROOM_TYPES.EXIT]: 0x00ffff, // Cyan
+      [ROOM_TYPES.HALLWAY]: 0x000000, // Transparent/black
     };
 
     // Draw colored squares for special rooms
@@ -335,9 +338,9 @@ export class GameScene extends Phaser.Scene {
 
     // Update player dot color based on player color
     const colorMap = {
-      pink: 0xFF00EA,
-      green: 0x00EA50,
-      blue: 0x4169E1
+      pink: 0xff00ea,
+      green: 0x00ea50,
+      blue: 0x4169e1,
     };
     this.minimapPlayerDot.setFillStyle(colorMap[this.playerColor]);
 
@@ -348,7 +351,12 @@ export class GameScene extends Phaser.Scene {
       if (!dot) {
         // Create dot for new player
         const color = sprite.getData("color");
-        dot = this.add.circle(0, 0, 3, colorMap[color as keyof typeof colorMap]);
+        dot = this.add.circle(
+          0,
+          0,
+          3,
+          colorMap[color as keyof typeof colorMap]
+        );
         dot.setStrokeStyle(1, 0x000000);
         this.minimapContainer.add(dot);
         this.minimapOtherPlayerDots.set(sessionId, dot);
@@ -357,8 +365,10 @@ export class GameScene extends Phaser.Scene {
       // Update position
       const otherPlayerTileX = sprite.x / GAME_CONFIG.TILE_SIZE;
       const otherPlayerTileY = sprite.y / GAME_CONFIG.TILE_SIZE;
-      const otherMinimapX = (otherPlayerTileX / GAME_CONFIG.MAP_WIDTH) * minimapSize;
-      const otherMinimapY = (otherPlayerTileY / GAME_CONFIG.MAP_HEIGHT) * minimapSize;
+      const otherMinimapX =
+        (otherPlayerTileX / GAME_CONFIG.MAP_WIDTH) * minimapSize;
+      const otherMinimapY =
+        (otherPlayerTileY / GAME_CONFIG.MAP_HEIGHT) * minimapSize;
 
       dot.setPosition(otherMinimapX, otherMinimapY);
     });
@@ -377,7 +387,14 @@ export class GameScene extends Phaser.Scene {
     this.consoleContainer.setVisible(false);
 
     // Background
-    const bg = this.add.rectangle(0, 0, consoleWidth, consoleHeight, 0x000000, 0.9);
+    const bg = this.add.rectangle(
+      0,
+      0,
+      consoleWidth,
+      consoleHeight,
+      0x000000,
+      0.9
+    );
     bg.setOrigin(0);
     this.consoleContainer.add(bg);
 
@@ -388,11 +405,16 @@ export class GameScene extends Phaser.Scene {
     this.consoleContainer.add(border);
 
     // Title
-    const title = this.add.text(10, 10, "DEVELOPER CONSOLE (` or F1 to toggle)", {
-      fontSize: "16px",
-      color: "#00ff00",
-      fontStyle: "bold",
-    });
+    const title = this.add.text(
+      10,
+      10,
+      "DEVELOPER CONSOLE (` or F1 to toggle)",
+      {
+        fontSize: "16px",
+        color: "#00ff00",
+        fontStyle: "bold",
+      }
+    );
     this.consoleContainer.add(title);
 
     // Output area
@@ -454,7 +476,12 @@ export class GameScene extends Phaser.Scene {
     // Listen for all keyboard input
     this.input.keyboard!.on("keydown", (event: KeyboardEvent) => {
       // Toggle console with tilde/backtick or F1 key
-      if (event.key === "`" || event.key === "~" || event.code === "Backquote" || event.key === "F1") {
+      if (
+        event.key === "`" ||
+        event.key === "~" ||
+        event.code === "Backquote" ||
+        event.key === "F1"
+      ) {
         event.preventDefault();
         this.consoleVisible = !this.consoleVisible;
         this.consoleContainer.setVisible(this.consoleVisible);
@@ -490,7 +517,8 @@ export class GameScene extends Phaser.Scene {
         // Navigate history up
         if (this.consoleHistoryIndex > 0) {
           this.consoleHistoryIndex--;
-          this.consoleInputBuffer = this.consoleHistory[this.consoleHistoryIndex];
+          this.consoleInputBuffer =
+            this.consoleHistory[this.consoleHistoryIndex];
           this.consoleInput.setText(this.consoleInputBuffer);
         }
       } else if (event.key === "ArrowDown") {
@@ -498,14 +526,20 @@ export class GameScene extends Phaser.Scene {
         // Navigate history down
         if (this.consoleHistoryIndex < this.consoleHistory.length - 1) {
           this.consoleHistoryIndex++;
-          this.consoleInputBuffer = this.consoleHistory[this.consoleHistoryIndex];
+          this.consoleInputBuffer =
+            this.consoleHistory[this.consoleHistoryIndex];
           this.consoleInput.setText(this.consoleInputBuffer);
         } else {
           this.consoleHistoryIndex = this.consoleHistory.length;
           this.consoleInputBuffer = "";
           this.consoleInput.setText("");
         }
-      } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      } else if (
+        event.key.length === 1 &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey
+      ) {
         event.preventDefault();
         // Add character to input
         this.consoleInputBuffer += event.key;
@@ -544,7 +578,10 @@ export class GameScene extends Phaser.Scene {
     } else {
       // Send to server
       if (this.colyseusClient && this.colyseusClient.room) {
-        this.colyseusClient.room.send("console_command", { command: cmd, args });
+        this.colyseusClient.room.send("console_command", {
+          command: cmd,
+          args,
+        });
       } else {
         this.addConsoleOutput("Error: Not connected to server");
       }
@@ -617,7 +654,7 @@ export class GameScene extends Phaser.Scene {
           data.y * GAME_CONFIG.TILE_SIZE
         );
         // Reset velocity to stop any movement
-        if (this.player.body && 'velocity' in this.player.body) {
+        if (this.player.body && "velocity" in this.player.body) {
           this.player.body.velocity.set(0, 0);
         }
       });
@@ -807,11 +844,19 @@ export class GameScene extends Phaser.Scene {
     // Only place items in specific room types
     if (room.roomType === ROOM_TYPES.SECURITY_ROOM) {
       // Calculate center position of the room in pixels
-      const centerX = (room.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2) * GAME_CONFIG.TILE_SIZE;
-      const centerY = (room.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2) * GAME_CONFIG.TILE_SIZE;
+      const centerX =
+        (room.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2) *
+        GAME_CONFIG.TILE_SIZE;
+      const centerY =
+        (room.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2) *
+        GAME_CONFIG.TILE_SIZE;
 
       // Create the control room computer as a static physics sprite
-      const computer = this.physics.add.staticSprite(centerX, centerY, "controlRoomComputer");
+      const computer = this.physics.add.staticSprite(
+        centerX,
+        centerY,
+        "controlRoomComputer"
+      );
       computer.setDepth(5); // Below player (10) but above floor
 
       // Set up collision body to match the sprite size
@@ -1112,7 +1157,7 @@ export class GameScene extends Phaser.Scene {
 
     // Set shooting state
     this.isShooting = true;
-    this.shootCooldown = 500; // 500ms cooldown
+    this.shootCooldown = 200; // 500ms cooldown
 
     // Change to shoot sprite
     this.player.setTexture(`${this.playerColor}Shoot`);
@@ -1151,7 +1196,7 @@ export class GameScene extends Phaser.Scene {
 
     // Calculate bullet velocity based on current angle
     // Note: In Phaser, angle 0 is facing down, and increases clockwise
-    const bulletSpeed = 800;
+    const bulletSpeed = 2200;
     const velocityX = -Math.sin(angleInRadians) * bulletSpeed; // Negated for correct X direction
     const velocityY = Math.cos(angleInRadians) * bulletSpeed;
 
