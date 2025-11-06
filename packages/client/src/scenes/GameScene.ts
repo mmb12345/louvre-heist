@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GAME_CONFIG } from '@louvre-heist/shared';
 
 export class GameScene extends Phaser.Scene {
-  private player!: Phaser.GameObjects.Sprite;
+  private player!: Phaser.Physics.Arcade.Sprite;
   private wasdKeys!: {
     W: Phaser.Input.Keyboard.Key;
     A: Phaser.Input.Keyboard.Key;
@@ -10,6 +10,7 @@ export class GameScene extends Phaser.Scene {
     D: Phaser.Input.Keyboard.Key;
   };
   private currentAngle: number = 0; // Track current facing direction
+  private walls!: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -19,15 +20,23 @@ export class GameScene extends Phaser.Scene {
     // Create background grid with room divisions
     this.createBackground();
 
-    // Create visible walls (no collision yet)
+    // Create walls with collision
+    this.walls = this.physics.add.staticGroup();
     this.createWalls();
 
     // Create player sprite at center
     const startX = (GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE) / 2;
     const startY = (GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE) / 2;
 
-    this.player = this.add.sprite(startX, startY, 'playerStill');
+    this.player = this.physics.add.sprite(startX, startY, 'playerStill');
     this.player.setDepth(10);
+
+    // Set smaller collision body for smoother movement
+    this.player.body.setSize(24, 24);
+    this.player.body.setOffset(4, 4);
+
+    // Add collision
+    this.physics.add.collider(this.player, this.walls);
 
     // Create walking animation
     this.anims.create({
@@ -109,7 +118,7 @@ export class GameScene extends Phaser.Scene {
   private createWalls() {
     const DOOR_SIZE = 9; // Door width in tiles
 
-    // Create walls between rooms (visible only, no collision)
+    // Create walls between rooms with collision
     for (let roomY = 0; roomY < GAME_CONFIG.ROOMS_GRID; roomY++) {
       for (let roomX = 0; roomX < GAME_CONFIG.ROOMS_GRID; roomX++) {
 
@@ -123,12 +132,14 @@ export class GameScene extends Phaser.Scene {
             const isDoor = tileY >= doorStart && tileY < doorStart + DOOR_SIZE;
 
             if (!isDoor) {
-              const wallSprite = this.add.image(
+              const wallSprite = this.walls.create(
                 wallX * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
                 (roomY * GAME_CONFIG.ROOM_SIZE + tileY) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
                 'wall'
-              );
+              ) as Phaser.Physics.Arcade.Sprite;
               wallSprite.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+              wallSprite.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+              wallSprite.refreshBody();
             }
           }
         }
@@ -143,12 +154,14 @@ export class GameScene extends Phaser.Scene {
             const isDoor = tileX >= doorStart && tileX < doorStart + DOOR_SIZE;
 
             if (!isDoor) {
-              const wallSprite = this.add.image(
+              const wallSprite = this.walls.create(
                 (roomX * GAME_CONFIG.ROOM_SIZE + tileX) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
                 wallY * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
                 'wall'
-              );
+              ) as Phaser.Physics.Arcade.Sprite;
               wallSprite.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+              wallSprite.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+              wallSprite.refreshBody();
             }
           }
         }
@@ -165,42 +178,50 @@ export class GameScene extends Phaser.Scene {
 
     // Top wall
     for (let x = 0; x < GAME_CONFIG.MAP_WIDTH; x++) {
-      const wall = this.add.image(
+      const wall = this.walls.create(
         x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
         GAME_CONFIG.TILE_SIZE / 2,
         'wall'
-      );
+      ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
     }
 
     // Bottom wall
     for (let x = 0; x < GAME_CONFIG.MAP_WIDTH; x++) {
-      const wall = this.add.image(
+      const wall = this.walls.create(
         x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
         mapHeight - GAME_CONFIG.TILE_SIZE / 2,
         'wall'
-      );
+      ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
     }
 
     // Left wall
     for (let y = 0; y < GAME_CONFIG.MAP_HEIGHT; y++) {
-      const wall = this.add.image(
+      const wall = this.walls.create(
         GAME_CONFIG.TILE_SIZE / 2,
         y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
         'wall'
-      );
+      ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
     }
 
     // Right wall
     for (let y = 0; y < GAME_CONFIG.MAP_HEIGHT; y++) {
-      const wall = this.add.image(
+      const wall = this.walls.create(
         mapWidth - GAME_CONFIG.TILE_SIZE / 2,
         y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
         'wall'
-      );
+      ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
     }
   }
 
@@ -266,14 +287,7 @@ export class GameScene extends Phaser.Scene {
       this.player.setAngle(this.currentAngle);
     }
 
-    // Update player position directly (no collision yet)
-    const newX = this.player.x + velocityX;
-    const newY = this.player.y + velocityY;
-
-    const maxX = GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE;
-    const maxY = GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE;
-
-    this.player.x = Phaser.Math.Clamp(newX, 0, maxX);
-    this.player.y = Phaser.Math.Clamp(newY, 0, maxY);
+    // Update player velocity (physics handles collision)
+    this.player.setVelocity(velocityX * 60, velocityY * 60);
   }
 }
