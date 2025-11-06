@@ -1,5 +1,5 @@
-import Phaser from 'phaser';
-import { GAME_CONFIG } from '@louvre-heist/shared';
+import Phaser from "phaser";
+import { GAME_CONFIG } from "@louvre-heist/shared";
 
 export class GameScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
@@ -11,15 +11,15 @@ export class GameScene extends Phaser.Scene {
   };
   private currentAngle: number = 0; // Track current facing direction
   private walls!: Phaser.Physics.Arcade.StaticGroup;
-  private playerColor!: 'pink' | 'green' | 'blue';
+  private playerColor!: "pink" | "green" | "blue";
 
   constructor() {
-    super({ key: 'GameScene' });
+    super({ key: "GameScene" });
   }
 
   create() {
     // Get the selected color from the registry
-    this.playerColor = this.registry.get('playerColor') || 'pink';
+    this.playerColor = this.registry.get("playerColor") || "pink";
     // Create background grid with room divisions
     this.createBackground();
 
@@ -31,7 +31,11 @@ export class GameScene extends Phaser.Scene {
     const startX = (GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE) / 2;
     const startY = (GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE) / 2;
 
-    this.player = this.physics.add.sprite(startX, startY, `${this.playerColor}Still`);
+    this.player = this.physics.add.sprite(
+      startX,
+      startY,
+      `${this.playerColor}Still`
+    );
     this.player.setDepth(10);
 
     // Set smaller collision body for smoother movement
@@ -43,7 +47,7 @@ export class GameScene extends Phaser.Scene {
 
     // Create walking animation with the selected color
     this.anims.create({
-      key: 'walk',
+      key: "walk",
       frames: [
         { key: `${this.playerColor}Walk1` },
         { key: `${this.playerColor}Walk2` },
@@ -71,10 +75,10 @@ export class GameScene extends Phaser.Scene {
     );
 
     // Add simple UI
-    const controlsText = this.add.text(16, 16, 'WASD: Move', {
-      fontSize: '20px',
-      color: '#ffffff',
-      backgroundColor: '#000000',
+    const controlsText = this.add.text(16, 16, "WASD: Move", {
+      fontSize: "20px",
+      color: "#ffffff",
+      backgroundColor: "#000000",
       padding: { x: 8, y: 4 },
     });
     controlsText.setScrollFactor(0);
@@ -88,7 +92,7 @@ export class GameScene extends Phaser.Scene {
         this.add.image(
           x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
           y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-          'tile'
+          "tile"
         );
       }
     }
@@ -124,7 +128,6 @@ export class GameScene extends Phaser.Scene {
     // Create walls between rooms with collision
     for (let roomY = 0; roomY < GAME_CONFIG.ROOMS_GRID; roomY++) {
       for (let roomX = 0; roomX < GAME_CONFIG.ROOMS_GRID; roomX++) {
-
         // Create right wall (vertical) between this room and the next
         if (roomX < GAME_CONFIG.ROOMS_GRID - 1) {
           const wallX = (roomX + 1) * GAME_CONFIG.ROOM_SIZE;
@@ -136,12 +139,21 @@ export class GameScene extends Phaser.Scene {
 
             if (!isDoor) {
               const wallSprite = this.walls.create(
-                wallX * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-                (roomY * GAME_CONFIG.ROOM_SIZE + tileY) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-                'wall'
+                wallX * GAME_CONFIG.TILE_SIZE,
+                (roomY * GAME_CONFIG.ROOM_SIZE + tileY) *
+                  GAME_CONFIG.TILE_SIZE +
+                  GAME_CONFIG.TILE_SIZE / 2,
+                "wall"
               ) as Phaser.Physics.Arcade.Sprite;
-              wallSprite.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-              wallSprite.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE, true);
+              wallSprite.setDisplaySize(
+                GAME_CONFIG.TILE_SIZE,
+                GAME_CONFIG.TILE_SIZE
+              );
+              wallSprite.body.setSize(
+                GAME_CONFIG.TILE_SIZE,
+                GAME_CONFIG.TILE_SIZE
+              );
+              wallSprite.refreshBody();
             }
           }
         }
@@ -157,12 +169,21 @@ export class GameScene extends Phaser.Scene {
 
             if (!isDoor) {
               const wallSprite = this.walls.create(
-                (roomX * GAME_CONFIG.ROOM_SIZE + tileX) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-                wallY * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-                'wall'
+                (roomX * GAME_CONFIG.ROOM_SIZE + tileX) *
+                  GAME_CONFIG.TILE_SIZE +
+                  GAME_CONFIG.TILE_SIZE / 2,
+                wallY * GAME_CONFIG.TILE_SIZE,
+                "wall"
               ) as Phaser.Physics.Arcade.Sprite;
-              wallSprite.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-              wallSprite.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE, true);
+              wallSprite.setDisplaySize(
+                GAME_CONFIG.TILE_SIZE,
+                GAME_CONFIG.TILE_SIZE
+              );
+              wallSprite.body.setSize(
+                GAME_CONFIG.TILE_SIZE,
+                GAME_CONFIG.TILE_SIZE
+              );
+              wallSprite.refreshBody();
             }
           }
         }
@@ -182,10 +203,11 @@ export class GameScene extends Phaser.Scene {
       const wall = this.walls.create(
         x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
         GAME_CONFIG.TILE_SIZE / 2,
-        'wall'
+        "wall"
       ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE, true);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
     }
 
     // Bottom wall
@@ -193,10 +215,11 @@ export class GameScene extends Phaser.Scene {
       const wall = this.walls.create(
         x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
         mapHeight - GAME_CONFIG.TILE_SIZE / 2,
-        'wall'
+        "wall"
       ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE, true);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
     }
 
     // Left wall
@@ -204,10 +227,11 @@ export class GameScene extends Phaser.Scene {
       const wall = this.walls.create(
         GAME_CONFIG.TILE_SIZE / 2,
         y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-        'wall'
+        "wall"
       ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE, true);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
     }
 
     // Right wall
@@ -215,10 +239,11 @@ export class GameScene extends Phaser.Scene {
       const wall = this.walls.create(
         mapWidth - GAME_CONFIG.TILE_SIZE / 2,
         y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-        'wall'
+        "wall"
       ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE, true);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
     }
   }
 
@@ -275,7 +300,7 @@ export class GameScene extends Phaser.Scene {
 
       // Play walk animation if not already playing
       if (!this.player.anims.isPlaying) {
-        this.player.play('walk');
+        this.player.play("walk");
       }
     } else {
       // Stop animation and show still sprite, maintaining current angle
