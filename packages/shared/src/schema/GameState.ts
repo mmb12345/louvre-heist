@@ -18,6 +18,7 @@ export class Guard extends Schema {
   @type('number') y!: number;
   @type('number') patrolPattern!: number; // 0-3 for different patterns
   @type('number') patrolIndex: number = 0;
+  @type('number') speed: number = 1.5; // Movement speed (randomized on spawn)
 }
 
 export class Objective extends Schema {

@@ -421,6 +421,9 @@ export class GameRoom extends Room<GameState> {
         const guard = new Guard();
         guard.id = `guard_${guardIndex}`;
 
+        // Assign random speed (0.8 to 2.5, with average around 1.5)
+        guard.speed = 0.8 + Math.random() * 1.7;
+
         // Generate a room-relative patrol pattern
         const patternType = guardIndex % 4; // 4 different pattern types
         const customPattern = this.generateRoomPatrolPattern(room.gridX, room.gridY, patternType);
@@ -532,7 +535,7 @@ export class GameRoom extends Room<GameState> {
 
       // Use a larger threshold to ensure guards don't overshoot and get stuck
       // Threshold should be larger than guard speed to reliably detect arrival
-      if (distance < GAME_CONFIG.GUARD_SPEED * 2) {
+      if (distance < guard.speed * 2) {
         // Reached patrol point, move to next
         guard.patrolIndex = (guard.patrolIndex + 1) % pattern.length;
 
@@ -542,14 +545,14 @@ export class GameRoom extends Room<GameState> {
         const newDy = newTarget.y - guard.y;
         const newDistance = Math.sqrt(newDx * newDx + newDy * newDy);
 
-        if (newDistance > GAME_CONFIG.GUARD_SPEED) {
-          guard.x += (newDx / newDistance) * GAME_CONFIG.GUARD_SPEED;
-          guard.y += (newDy / newDistance) * GAME_CONFIG.GUARD_SPEED;
+        if (newDistance > guard.speed) {
+          guard.x += (newDx / newDistance) * guard.speed;
+          guard.y += (newDy / newDistance) * guard.speed;
         }
       } else {
         // Move towards target
-        guard.x += (dx / distance) * GAME_CONFIG.GUARD_SPEED;
-        guard.y += (dy / distance) * GAME_CONFIG.GUARD_SPEED;
+        guard.x += (dx / distance) * guard.speed;
+        guard.y += (dy / distance) * guard.speed;
       }
 
       // Check if guard caught any player

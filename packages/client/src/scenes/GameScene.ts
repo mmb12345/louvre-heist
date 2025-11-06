@@ -1133,7 +1133,9 @@ export class GameScene extends Phaser.Scene {
       const target = this.guardTargets.get(guardId);
       if (!target) return;
 
-      const lerpFactor = 0.3; // Interpolation speed (0.3 = 30% per frame)
+      // Use a higher lerp factor for smoother, faster interpolation
+      // This makes guards respond more quickly to server updates
+      const lerpFactor = 0.4; // Increased from 0.3 for smoother movement
 
       // Lerp position
       const currentX = sprite.x;
@@ -1147,14 +1149,23 @@ export class GameScene extends Phaser.Scene {
       const distanceToTarget = Math.sqrt(
         Math.pow(target.x - currentX, 2) + Math.pow(target.y - currentY, 2)
       );
-      const isMoving = distanceToTarget > 1; // Moving if more than 1 pixel from target
+      const isMoving = distanceToTarget > 2; // Moving if more than 2 pixels from target
 
-      // Update animation based on movement
+      // Calculate rotation angle based on movement direction
       if (isMoving) {
+        const dx = target.x - currentX;
+        const dy = target.y - currentY;
+        const angle = Math.atan2(dy, dx);
+
+        // Set rotation to face movement direction
+        sprite.setRotation(angle);
+
+        // Play walking animation
         if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== "guardWalk") {
           sprite.play("guardWalk");
         }
       } else {
+        // Stop animation when not moving
         if (sprite.anims.isPlaying) {
           sprite.stop();
           sprite.setTexture("guardStill");
