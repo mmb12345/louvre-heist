@@ -17,6 +17,11 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
+  disableContextMenu: true,
+  fps: {
+    target: 60,
+    forceSetTimeOut: false,
+  },
 };
 
 new Phaser.Game(config);

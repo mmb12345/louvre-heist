@@ -40,6 +40,7 @@ export class GameScene extends Phaser.Scene {
   private guards: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
   private guardTargets: Map<string, { x: number; y: number }> = new Map();
   private guardLastServerPos: Map<string, { x: number; y: number }> = new Map(); // Track last known server position
+  private guardsGroup!: Phaser.Physics.Arcade.Group;
 
   // Minimap
   private minimapContainer!: Phaser.GameObjects.Container;
@@ -68,6 +69,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   async create() {
+    // Prevent game from pausing when window loses focus
+    this.game.events.off("blur");
+    this.game.events.off("focus");
+
+    // Reset physics on window focus to prevent slow movement
+    window.addEventListener("focus", () => {
+      if (this.player && this.player.body) {
+        this.player.body.reset(this.player.x, this.player.y);
+      }
+    });
+
     // Get the selected color from the registry
     this.playerColor = this.registry.get("playerColor") || "pink";
     // Create background grid with room divisions
@@ -127,6 +139,29 @@ export class GameScene extends Phaser.Scene {
 
     // Create bullets group
     this.bullets = this.physics.add.group();
+
+    // Create guards group
+    this.guardsGroup = this.physics.add.group();
+
+    // Set up collision between bullets and guards
+    this.physics.add.overlap(
+      this.bullets,
+      this.guardsGroup,
+      this.bulletHitGuard,
+      undefined,
+      this
+    );
+
+    // Set up collision between bullets and walls (bullets destroy on impact)
+    this.physics.add.collider(
+      this.bullets,
+      this.walls,
+      (bullet) => {
+        bullet.destroy();
+      },
+      undefined,
+      this
+    );
 
     // Set physics world bounds to match map size
     this.physics.world.setBounds(
@@ -853,10 +888,26 @@ export class GameScene extends Phaser.Scene {
     // Set depth to be same as player so they're visible
     sprite.setDepth(10);
 
-    // Set collision body (using natural sprite size)
-    if (sprite.body) {
-      sprite.body.setSize(24, 24);
-      sprite.body.setOffset(4, 4);
+    // Store guard ID in sprite data for collision detection
+    sprite.setData("guardId", guardId);
+
+    // Add to guards group for collision detection with bullets FIRST
+    this.guardsGroup.add(sprite);
+
+    // Set collision body (3x wider, 2x taller than original 24x24)
+    const hitboxWidth = 72; // 24 * 3
+    const hitboxHeight = 48; // 24 * 2
+    const body = sprite.body as Phaser.Physics.Arcade.Body;
+    if (body) {
+      // Get sprite dimensions
+      const spriteWidth = sprite.width;
+      const spriteHeight = sprite.height;
+
+      body.setSize(hitboxWidth, hitboxHeight);
+      // Center the hitbox on the sprite center
+      const offsetX = (spriteWidth - hitboxWidth) / 2;
+      const offsetY = (spriteHeight - hitboxHeight) / 2;
+      body.setOffset(offsetX, offsetY);
     }
 
     // Add collision with walls
@@ -895,7 +946,8 @@ export class GameScene extends Phaser.Scene {
   private removeGuard(guardId: string) {
     const sprite = this.guards.get(guardId);
     if (sprite) {
-      sprite.destroy();
+      // Remove from guards group
+      this.guardsGroup.remove(sprite, true, true);
       this.guards.delete(guardId);
       this.guardTargets.delete(guardId);
     }
@@ -1390,6 +1442,28 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private bulletHitGuard(
+    bullet: Phaser.GameObjects.GameObject,
+    guard: Phaser.GameObjects.GameObject
+  ) {
+    // Destroy the bullet
+    bullet.destroy();
+
+    // Find the guard ID from the sprite
+    const guardSprite = guard as Phaser.Physics.Arcade.Sprite;
+    const guardId = guardSprite.getData("guardId");
+
+    if (guardId) {
+      // Remove guard from the map
+      this.removeGuard(guardId);
+
+      // Notify server that guard was killed
+      if (this.colyseusClient && this.colyseusClient.room) {
+        this.colyseusClient.room.send("guard_killed", { guardId });
+      }
+    }
+  }
+
   private shoot() {
     if (this.isShooting || this.shootCooldown > 0) return;
 
@@ -1432,21 +1506,25 @@ export class GameScene extends Phaser.Scene {
     bullet.setDepth(15);
     bullet.setScale(1.5);
 
+    // Add bullet to group for tracking first
+    this.bullets.add(bullet);
+
+    // Set collision body size for bullet (larger for better collision detection)
+    const body = bullet.body as Phaser.Physics.Arcade.Body;
+    if (body) {
+      body.setCircle(20); // Larger hitbox for easier guard kills
+      body.setAllowGravity(false); // Ensure no gravity affects bullet
+      body.setDrag(0); // No drag/friction
+    }
+
     // Calculate bullet velocity based on current angle
     // Note: In Phaser, angle 0 is facing down, and increases clockwise
-    const bulletSpeed = 2200;
+    const bulletSpeed = 1200; // Fast enough to be visible but slow enough for collision
     const velocityX = -Math.sin(angleInRadians) * bulletSpeed; // Negated for correct X direction
     const velocityY = Math.cos(angleInRadians) * bulletSpeed;
 
-    // Store velocity on the bullet for manual updates
-    bullet.setData("velocityX", velocityX);
-    bullet.setData("velocityY", velocityY);
-
-    // Set velocity on the physics body
-    bullet.setVelocity(velocityX, velocityY);
-
-    // Add bullet to group for tracking
-    this.bullets.add(bullet);
+    // Set velocity on the physics body after adding to group
+    body.setVelocity(velocityX, velocityY);
 
     // Auto-destroy bullet after 5 seconds
     this.time.delayedCall(5000, () => {
@@ -1483,16 +1561,10 @@ export class GameScene extends Phaser.Scene {
       this.shoot();
     }
 
-    // Update bullets - move them and remove if off screen
+    // Update bullets - remove if off screen (physics handles movement)
     this.bullets.children.entries.forEach((bullet) => {
       const b = bullet as Phaser.Physics.Arcade.Sprite;
       if (b.active) {
-        // Manually update bullet position
-        const velX = b.getData("velocityX") || 0;
-        const velY = b.getData("velocityY") || 0;
-        b.x += velX * (delta / 1000);
-        b.y += velY * (delta / 1000);
-
         // Remove bullets that go off screen
         const bounds = this.physics.world.bounds;
         if (

@@ -153,6 +153,21 @@ export class GameRoom extends Room<GameState> {
       });
     });
 
+    this.onMessage('guard_killed', (client, data: { guardId: string }) => {
+      const { guardId } = data;
+
+      // Check if guard exists
+      if (this.state.guards.has(guardId)) {
+        console.log(`Guard ${guardId} was killed by player ${client.sessionId}`);
+
+        // Remove guard from state
+        this.state.guards.delete(guardId);
+        this.guardPatrolPatterns.delete(guardId);
+
+        console.log(`Guard ${guardId} removed. Remaining guards: ${this.state.guards.size}`);
+      }
+    });
+
     this.onMessage('console_command', (client, data: { command: string; args: string[] }) => {
       this.handleConsoleCommand(client, data.command, data.args);
     });
