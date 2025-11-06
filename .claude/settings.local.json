@@ -14,7 +14,11 @@
       "Bash(npm run dev:server:*)",
       "Bash(git stash:*)",
       "Bash(npm run build:client:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(curl:*)",
+      "Bash(npm run build:server:*)",
+      "Bash(npm --workspace=@louvre-heist/client run build)",
+      "Bash(npm --workspace=@louvre-heist/server run build)"
     ],
     "deny": [],
     "ask": []

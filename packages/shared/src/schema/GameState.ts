@@ -43,6 +43,7 @@ export class Crown extends Schema {
 }
 
 export class PostIt extends Schema {
+  @type('string') id!: string;
   @type('number') x!: number; // Tile position
   @type('number') y!: number; // Tile position
   @type('boolean') pickedUp: boolean = false;
@@ -61,7 +62,7 @@ export class GameState extends Schema {
   @type({ map: Objective }) objectives = new MapSchema<Objective>();
   @type({ map: Room }) rooms = new MapSchema<Room>();
   @type(Crown) crown?: Crown;
-  @type(PostIt) postit?: PostIt;
+  @type({ map: PostIt }) postits = new MapSchema<PostIt>();
   @type(ExitDoor) exitDoor?: ExitDoor;
   @type('number') timeRemaining!: number;
   @type('boolean') gameStarted: boolean = false;

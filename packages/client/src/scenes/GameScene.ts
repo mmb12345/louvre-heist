@@ -63,12 +63,15 @@ export class GameScene extends Phaser.Scene {
   private crownUIIndicator?: Phaser.GameObjects.Container;
 
   // Post-it
-  private postitSprite?: Phaser.GameObjects.Sprite;
+  private postitSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private passwordUIIndicator?: Phaser.GameObjects.Container;
 
   // Exit door
   private exitDoorGraphics?: Phaser.GameObjects.Graphics;
   private exitDoorUnlockedText?: Phaser.GameObjects.Text;
+
+  // Footage objective
+  private footageUIIndicator?: Phaser.GameObjects.Container;
 
   // Console
   private consoleVisible: boolean = false;
@@ -84,6 +87,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   async create() {
+    // Start game scene background music
+    this.sound.play("game-scene-bgm", { loop: true, volume: 0.05 });
+
     // Prevent game from pausing when window loses focus
     this.game.events.off("blur");
     this.game.events.off("focus");
@@ -820,30 +826,40 @@ export class GameScene extends Phaser.Scene {
         }
       );
 
-      // Use a delayed check to wait for post-it to be initialized
-      this.time.delayedCall(1000, () => {
-        if (room.state.postit) {
-          console.log("Post-it detected in room state!", room.state.postit);
-          this.renderPostIt(room.state.postit);
+      // Listen for post-its being added to the game
+      room.state.postits.onAdd((postit: PostIt, id: string) => {
+        console.log(`Post-it ${id} added to room!`, postit);
+        this.renderPostIt(postit);
 
-          // Listen for post-it property changes
-          room.state.postit.onChange(() => {
-            console.log("Post-it changed!", room.state.postit);
-            if (room.state.postit) {
-              this.renderPostIt(room.state.postit);
-            }
-          });
-        } else {
-          console.log("No post-it in room state yet");
-        }
+        // Listen for changes to this post-it
+        postit.onChange(() => {
+          console.log(`Post-it ${id} changed!`);
+          this.renderPostIt(postit);
+        });
+      });
+
+      // Render existing post-its
+      room.state.postits.forEach((postit: PostIt) => {
+        this.renderPostIt(postit);
       });
 
       // Listen for post-it picked up event
       room.onMessage(
         "postit_picked_up",
-        (data: { playerId: string; playerName: string; password: string }) => {
-          console.log(`${data.playerName} picked up the post-it!`);
+        (data: { playerId: string; playerName: string; password: string; postitId: string }) => {
+          console.log(`${data.playerName} picked up a post-it!`);
           this.showPasswordUI(data.password);
+        }
+      );
+
+      // Listen for objective completed event
+      room.onMessage(
+        "objective_completed",
+        (data: { type: string }) => {
+          console.log(`Objective completed: ${data.type}`);
+          if (data.type === 'destroy_footage') {
+            this.updateFootageUI(true);
+          }
         }
       );
 
@@ -878,6 +894,15 @@ export class GameScene extends Phaser.Scene {
         }
       });
 
+      // Listen for player escaped event
+      room.onMessage(
+        "player_escaped",
+        (data: { playerId: string; playerName: string }) => {
+          console.log(`${data.playerName} escaped through the exit!`);
+          this.showPlayerEscapedMessage(data.playerName);
+        }
+      );
+
       // Listen for guard shooting event
       room.onMessage(
         "guard_shoot",
@@ -894,6 +919,22 @@ export class GameScene extends Phaser.Scene {
           this.handleGuardShoot(data);
         }
       );
+
+      // Listen for game over event
+      room.onMessage("game_over", (data: { victory: boolean }) => {
+        console.log(`Game over! Victory: ${data.victory}`);
+        // Transition to win or loss scene after a short delay
+        this.time.delayedCall(2000, () => {
+          if (data.victory) {
+            this.scene.start("WinScene");
+          } else {
+            this.scene.start("LossScene");
+          }
+        });
+      });
+
+      // Initialize footage UI (shown as not completed initially)
+      this.updateFootageUI(false);
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
     }
@@ -1387,27 +1428,30 @@ export class GameScene extends Phaser.Scene {
   private renderPostIt(postit: PostIt) {
     if (postit.pickedUp) {
       // Post-it has been picked up, hide the world sprite
-      if (this.postitSprite) {
-        this.postitSprite.setVisible(false);
+      const sprite = this.postitSprites.get(postit.id);
+      if (sprite) {
+        sprite.setVisible(false);
       }
     } else {
       // Post-it is in the world, show it
-      if (!this.postitSprite) {
+      let sprite = this.postitSprites.get(postit.id);
+      if (!sprite) {
         // Create post-it sprite
-        this.postitSprite = this.add.sprite(
+        sprite = this.add.sprite(
           postit.x * GAME_CONFIG.TILE_SIZE,
           postit.y * GAME_CONFIG.TILE_SIZE,
           "postit"
         );
-        this.postitSprite.setDepth(5); // Below player but above floor
-        this.postitSprite.setScale(1); // Normal size
+        sprite.setDepth(5); // Below player but above floor
+        sprite.setScale(1); // Normal size
+        this.postitSprites.set(postit.id, sprite);
       } else {
         // Update position and make visible
-        this.postitSprite.setPosition(
+        sprite.setPosition(
           postit.x * GAME_CONFIG.TILE_SIZE,
           postit.y * GAME_CONFIG.TILE_SIZE
         );
-        this.postitSprite.setVisible(true);
+        sprite.setVisible(true);
       }
     }
   }
@@ -1530,6 +1574,66 @@ export class GameScene extends Phaser.Scene {
     this.passwordUIIndicator.setVisible(true);
   }
 
+  private updateFootageUI(isCompleted: boolean) {
+    // Create footage UI indicator in top left corner if it doesn't exist
+    if (!this.footageUIIndicator) {
+      this.footageUIIndicator = this.add.container(0, 0);
+      this.footageUIIndicator.setScrollFactor(0); // Fixed to camera
+      this.footageUIIndicator.setDepth(1000); // On top of everything
+
+      // Background
+      const bg = this.add.rectangle(0, 0, 180, 50, 0x000000, 0.8);
+      this.footageUIIndicator.add(bg);
+
+      // Icon/Status indicator (checkmark or X)
+      const statusIcon = this.add.text(-70, 0, "✗", {
+        fontSize: "24px",
+        color: "#FF0000",
+        fontStyle: "bold",
+      });
+      statusIcon.setOrigin(0.5);
+      this.footageUIIndicator.add(statusIcon);
+
+      // Title
+      const title = this.add.text(15, -8, "Security Footage", {
+        fontSize: "14px",
+        color: "#FFFFFF",
+        fontStyle: "bold",
+      });
+      title.setOrigin(0, 0.5);
+      this.footageUIIndicator.add(title);
+
+      // Status text
+      const statusText = this.add.text(15, 8, "Not Destroyed", {
+        fontSize: "12px",
+        color: "#FF6B6B",
+      });
+      statusText.setOrigin(0, 0.5);
+      this.footageUIIndicator.add(statusText);
+
+      // Position in top left
+      this.footageUIIndicator.setPosition(110, 50);
+    }
+
+    // Update the status based on completion
+    const statusIcon = this.footageUIIndicator.getAt(1) as Phaser.GameObjects.Text;
+    const statusText = this.footageUIIndicator.getAt(3) as Phaser.GameObjects.Text;
+
+    if (isCompleted) {
+      statusIcon.setText("✓");
+      statusIcon.setColor("#00FF00");
+      statusText.setText("Destroyed!");
+      statusText.setColor("#00FF00");
+    } else {
+      statusIcon.setText("✗");
+      statusIcon.setColor("#FF0000");
+      statusText.setText("Not Destroyed");
+      statusText.setColor("#FF6B6B");
+    }
+
+    this.footageUIIndicator.setVisible(true);
+  }
+
   private showExitUnlockedAlert(playerName: string) {
     // Create alert notification in center of screen
     const centerX = this.cameras.main.width / 2;
@@ -1571,6 +1675,67 @@ export class GameScene extends Phaser.Scene {
         playerText.destroy();
       }
     });
+  }
+
+  private showPlayerEscapedMessage(playerName: string) {
+    // Create a temporary message in the center of the screen
+    const centerX = this.cameras.main.width / 2;
+    const centerY = this.cameras.main.height / 2;
+
+    const messageContainer = this.add.container(centerX, centerY);
+    messageContainer.setScrollFactor(0);
+    messageContainer.setDepth(2000);
+
+    // Background with golden glow
+    const bg = this.add.rectangle(0, 0, 450, 120, 0x000000, 0.95);
+    messageContainer.add(bg);
+
+    // Border glow
+    const border = this.add.rectangle(0, 0, 450, 120, 0xFFD700, 0);
+    border.setStrokeStyle(3, 0xFFD700);
+    messageContainer.add(border);
+
+    // Message text
+    const messageText = this.add.text(
+      0,
+      -15,
+      playerName === this.sessionId ? "🎉 YOU ESCAPED! 🎉" : `🎉 ${playerName} ESCAPED! 🎉`,
+      {
+        fontSize: "28px",
+        color: "#FFD700",
+        fontStyle: "bold",
+        align: "center",
+      }
+    );
+    messageText.setOrigin(0.5);
+    messageContainer.add(messageText);
+
+    // Subtitle
+    const subtitle = this.add.text(
+      0,
+      20,
+      playerName === this.sessionId
+        ? "You successfully completed the heist!"
+        : "The heist was successful!",
+      {
+        fontSize: "18px",
+        color: "#00FF00",
+        align: "center",
+      }
+    );
+    subtitle.setOrigin(0.5);
+    messageContainer.add(subtitle);
+
+    // Animate in with a scale effect
+    messageContainer.setScale(0);
+    this.tweens.add({
+      targets: messageContainer,
+      scale: 1,
+      duration: 300,
+      ease: 'Back.easeOut',
+    });
+
+    // Keep the message visible (game will end soon anyway)
   }
 
   private updatePlayerTarget(sessionId: string, player: Player) {
@@ -2152,5 +2317,10 @@ export class GameScene extends Phaser.Scene {
 
     // Update player velocity (physics handles collision)
     this.player.setVelocity(velocityX * 60, velocityY * 60);
+  }
+
+  shutdown() {
+    // Stop game scene background music when scene ends
+    this.sound.stopByKey('game-scene-bgm');
   }
 }

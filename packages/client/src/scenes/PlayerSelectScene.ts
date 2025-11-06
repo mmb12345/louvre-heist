@@ -8,7 +8,7 @@ export class PlayerSelectScene extends Phaser.Scene {
   }
 
   create() {
-   this.sound.play("boot-scene-bgm", { loop: true, volume: 0.3 })
+   this.sound.play("boot-scene-bgm", { loop: true, volume: 0.05 })
 
     const centerX = this.cameras.main.width / 2;
     const centerY = this.cameras.main.height / 2;

@@ -43,6 +43,7 @@ export class BootScene extends Phaser.Scene {
 
     // Load background music
     this.load.audio("boot-scene-bgm", "/assets/boot-scene-bgm.mp3");
+    this.load.audio("game-scene-bgm", "/assets/game-scene-bgm.mp3");
 
     // Load room items
     this.load.image("controlRoomComputer", "/assets/controlRoomComputer.svg");
@@ -66,8 +67,11 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     // Check if audio is loaded
-    console.log('BootScene: Checking audio cache...');
-    console.log('boot-scene-bgm exists:', this.cache.audio.exists('boot-scene-bgm'));
+    console.log("BootScene: Checking audio cache...");
+    console.log(
+      "boot-scene-bgm exists:",
+      this.cache.audio.exists("boot-scene-bgm")
+    );
 
     if (SKIP_PLAYER_SELECT) {
       // Skip player selection and use a random color
