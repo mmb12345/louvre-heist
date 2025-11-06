@@ -877,6 +877,23 @@ export class GameScene extends Phaser.Scene {
           });
         }
       });
+
+      // Listen for guard shooting event
+      room.onMessage(
+        "guard_shoot",
+        (data: {
+          guardId: string;
+          guardX: number;
+          guardY: number;
+          playerId: string;
+          playerName: string;
+          playerX: number;
+          playerY: number;
+        }) => {
+          console.log(`Guard ${data.guardId} shot ${data.playerName}!`);
+          this.handleGuardShoot(data);
+        }
+      );
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
     }
@@ -1055,6 +1072,129 @@ export class GameScene extends Phaser.Scene {
     if (dot) {
       dot.setFillStyle(0x666666); // Gray for dead
     }
+  }
+
+  private handleGuardShoot(data: {
+    guardId: string;
+    guardX: number;
+    guardY: number;
+    playerId: string;
+    playerName: string;
+    playerX: number;
+    playerY: number;
+  }) {
+    const guardSprite = this.guards.get(data.guardId);
+    if (!guardSprite) return;
+
+    // Temporarily change guard to shooting sprite
+    guardSprite.setTexture("guardShoot");
+
+    // Create muzzle flash effect
+    const guardWorldX = data.guardX * GAME_CONFIG.TILE_SIZE;
+    const guardWorldY = data.guardY * GAME_CONFIG.TILE_SIZE;
+    const playerWorldX = data.playerX * GAME_CONFIG.TILE_SIZE;
+    const playerWorldY = data.playerY * GAME_CONFIG.TILE_SIZE;
+
+    // Create line from guard to player (bullet trail)
+    const graphics = this.add.graphics();
+    graphics.lineStyle(3, 0xff0000, 1);
+    graphics.beginPath();
+    graphics.moveTo(guardWorldX, guardWorldY);
+    graphics.lineTo(playerWorldX, playerWorldY);
+    graphics.strokePath();
+    graphics.setDepth(15);
+
+    // Remove line after short duration
+    this.time.delayedCall(100, () => {
+      graphics.destroy();
+    });
+
+    // Return guard to normal sprite after shooting
+    this.time.delayedCall(200, () => {
+      if (guardSprite && !guardSprite.getData("isDead")) {
+        guardSprite.setTexture("guardStill");
+      }
+    });
+
+    // Show player death effect if it's the local player
+    if (data.playerId === this.sessionId) {
+      this.showPlayerDeathEffect();
+    }
+
+    // Show death effect for other players
+    const otherPlayerSprite = this.otherPlayers.get(data.playerId);
+    if (otherPlayerSprite) {
+      this.showDeathEffectForSprite(otherPlayerSprite);
+    }
+  }
+
+  private showPlayerDeathEffect() {
+    // Flash screen red
+    this.cameras.main.flash(500, 255, 0, 0);
+
+    // Change player sprite to dead version
+    const playerColor = this.registry.get("playerColor");
+    this.player.setTexture(`${playerColor}Dead`);
+    this.player.setDepth(6); // Same as dead guards, below living entities
+
+    // Stop any animation
+    if (this.player.anims.isPlaying) {
+      this.player.stop();
+    }
+
+    // Mark player as caught in local data
+    this.player.setData("playerState", { caught: true });
+
+    // Show death message
+    const centerX = this.cameras.main.width / 2;
+    const centerY = this.cameras.main.height / 2;
+
+    const deathText = this.add.text(centerX, centerY, "YOU WERE CAUGHT!", {
+      fontSize: "48px",
+      color: "#ff0000",
+      fontStyle: "bold",
+      backgroundColor: "#000000",
+      padding: { x: 20, y: 10 },
+    });
+    deathText.setOrigin(0.5);
+    deathText.setScrollFactor(0);
+    deathText.setDepth(3000);
+
+    // Fade out death text
+    this.tweens.add({
+      targets: deathText,
+      alpha: 0,
+      duration: 2000,
+      delay: 1000,
+      onComplete: () => {
+        deathText.destroy();
+      },
+    });
+  }
+
+  private showDeathEffectForSprite(sprite: Phaser.Physics.Arcade.Sprite) {
+    // Flash the sprite red
+    sprite.setTint(0xff0000);
+
+    // Change to dead sprite
+    const color = sprite.getData("color");
+    if (color) {
+      sprite.setTexture(`${color}Dead`);
+      sprite.setDepth(6); // Same as dead guards, below living entities
+    }
+
+    // Stop any animation
+    if (sprite.anims.isPlaying) {
+      sprite.stop();
+    }
+
+    // Set opacity to show they're dead
+    sprite.setAlpha(0.8);
+
+    // Remove tint after flash
+    this.time.delayedCall(500, () => {
+      sprite.clearTint();
+    });
   }
 
   private removeGuard(guardId: string) {
@@ -1908,8 +2048,12 @@ export class GameScene extends Phaser.Scene {
     let velocityX = 0;
     let velocityY = 0;
 
-    // Skip player input if console is visible
-    if (!this.consoleVisible) {
+    // Check if player is dead/caught - if so, disable all movement
+    const playerData = this.player.getData("playerState");
+    const isCaught = playerData?.caught || false;
+
+    // Skip player input if console is visible OR if player is caught
+    if (!this.consoleVisible && !isCaught) {
       // Determine velocity from key presses
       if (this.wasdKeys.A.isDown) {
         velocityX = -GAME_CONFIG.PLAYER_SPEED;

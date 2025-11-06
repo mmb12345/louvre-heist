@@ -644,7 +644,7 @@ export class GameRoom extends Room<GameState> {
         guard.y += (dy / distance) * guard.speed;
       }
 
-      // Check if guard caught any player
+      // Check if guard can shoot any player
       this.state.players.forEach((player) => {
         if (player.caught) return;
 
@@ -652,9 +652,23 @@ export class GameRoom extends Room<GameState> {
           Math.pow(guard.x - player.x, 2) + Math.pow(guard.y - player.y, 2)
         );
 
-        if (distToPlayer < GAME_CONFIG.GUARD_CATCH_RANGE) {
+        // Check if player is within shooting range (3 tiles)
+        if (distToPlayer < GAME_CONFIG.GUARD_SHOOT_RANGE) {
+          // Guard shoots the player
           player.caught = true;
-          this.broadcast('player_caught', { playerId: player.id, playerName: player.name });
+
+          // Broadcast guard shooting event
+          this.broadcast('guard_shoot', {
+            guardId: guard.id,
+            guardX: guard.x,
+            guardY: guard.y,
+            playerId: player.id,
+            playerName: player.name,
+            playerX: player.x,
+            playerY: player.y
+          });
+
+          console.log(`Guard ${guard.id} shot player ${player.name} at distance ${distToPlayer.toFixed(2)}`);
 
           // Check if all players are caught
           const allCaught = Array.from(this.state.players.values()).every(p => p.caught);

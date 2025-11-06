@@ -10,6 +10,8 @@ export const GAME_CONFIG = {
   GAME_DURATION: 300, // Game duration in seconds (5 minutes)
   GUARD_SPEED: 1.5, // Guard movement speed
   GUARD_CATCH_RANGE: 1, // Distance at which guard catches player
+  GUARD_SIZE: 24, // Guard sprite size in pixels (converted to tiles for logic)
+  GUARD_SHOOT_RANGE: 3, // Distance at which guard shoots player (in tiles, 3x guard size)
 };
 
 export const OBJECTIVES = {
