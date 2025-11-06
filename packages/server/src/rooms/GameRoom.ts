@@ -193,6 +193,17 @@ export class GameRoom extends Room<GameState> {
         sendResponse(`Special Rooms:\n${roomList}`);
         break;
 
+      case 'guards':
+        const guardList = Array.from(this.state.guards.values())
+          .map(g => `${g.id} at (${g.x.toFixed(1)}, ${g.y.toFixed(1)})`)
+          .join('\n');
+        if (guardList) {
+          sendResponse(`Guards:\n${guardList}`);
+        } else {
+          sendResponse('No guards on the map');
+        }
+        break;
+
       case 'speed':
         if (args.length < 1) {
           sendResponse('Usage: speed <value>');
@@ -253,6 +264,10 @@ export class GameRoom extends Room<GameState> {
         // Regenerate map
         this.generateMap();
 
+        // Clear existing guards and respawn them
+        this.state.guards.clear();
+        this.initializeGuards();
+
         // Reset all player positions to starting location (bottom middle room)
         const startRoomX = 4; // Middle room (0-9 grid)
         const startRoomY = 9; // Bottom row
@@ -268,7 +283,7 @@ export class GameRoom extends Room<GameState> {
         this.broadcast('reset_position', { x: startX, y: startY });
 
         sendResponse('Map regenerated and player positions reset');
-        this.broadcast('console_response', { output: 'Map has been regenerated!' });
+        this.broadcast('console_response', { output: 'Map has been regenerated with new guards!' });
         break;
 
       default:
@@ -313,18 +328,29 @@ export class GameRoom extends Room<GameState> {
   }
 
   private initializeGuards() {
-    // Create 4 guards with different patrol patterns
-    for (let i = 0; i < 4; i++) {
+    // Find all guard rooms
+    const guardRooms = Array.from(this.state.rooms.values()).filter(
+      (room) => room.roomType === ROOM_TYPES.GUARD_ROOM
+    );
+
+    // Randomly decide how many guards to spawn (1-4)
+    const numGuards = Math.floor(Math.random() * 4) + 1;
+    console.log(`Spawning ${numGuards} guards in ${guardRooms.length} guard rooms`);
+
+    // Spawn guards in random guard rooms
+    for (let i = 0; i < numGuards && i < guardRooms.length; i++) {
+      const room = guardRooms[i];
       const guard = new Guard();
       guard.id = `guard_${i}`;
-      guard.patrolPattern = i;
+      guard.patrolPattern = i % PATROL_PATTERNS.length; // Cycle through available patterns
 
-      const pattern = PATROL_PATTERNS[i];
-      guard.x = pattern[0].x;
-      guard.y = pattern[0].y;
+      // Spawn guard in center of the guard room (in tile coordinates)
+      guard.x = room.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+      guard.y = room.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
       guard.patrolIndex = 0;
 
       this.state.guards.set(guard.id, guard);
+      console.log(`Guard ${guard.id} spawned at room (${room.gridX}, ${room.gridY}), position (${guard.x}, ${guard.y})`);
     }
   }
 

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME_CONFIG, ROOM_TYPES } from "@louvre-heist/shared";
 import { ColyseusClient } from "../network/ColyseusClient";
-import type { Player, Room } from "@louvre-heist/shared";
+import type { Player, Room, Guard } from "@louvre-heist/shared";
 import { generatePlayerName } from "../utils/nameGenerator";
 
 export class GameScene extends Phaser.Scene {
@@ -31,6 +31,10 @@ export class GameScene extends Phaser.Scene {
   private lastUpdateTime: number = 0;
   private updateThrottle: number = 100; // Send updates every 100ms (10 times per second)
   private lastSentPosition: { x: number; y: number; angle: number } = { x: 0, y: 0, angle: 0 };
+
+  // Guards
+  private guards: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
+  private guardTargets: Map<string, { x: number; y: number }> = new Map();
 
   // Minimap
   private minimapContainer!: Phaser.GameObjects.Container;
@@ -642,6 +646,34 @@ export class GameScene extends Phaser.Scene {
           this.roomItems.delete(key);
         }
       });
+
+      // Listen for guards joining
+      room.state.guards.onAdd((guard: Guard, guardId: string) => {
+        console.log("Guard added:", guardId);
+        this.addGuard(guardId, guard);
+
+        // Listen to guard position changes
+        guard.onChange(() => {
+          this.updateGuardTarget(guardId, guard);
+        });
+      });
+
+      // Listen for guards leaving (e.g., when killed)
+      room.state.guards.onRemove((guard: Guard, guardId: string) => {
+        console.log("Guard removed:", guardId);
+        this.removeGuard(guardId);
+      });
+
+      // Process existing guards that are already in the state
+      room.state.guards.forEach((guard: Guard, guardId: string) => {
+        console.log("Processing existing guard:", guardId);
+        this.addGuard(guardId, guard);
+
+        // Listen to guard position changes
+        guard.onChange(() => {
+          this.updateGuardTarget(guardId, guard);
+        });
+      });
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
     }
@@ -707,6 +739,68 @@ export class GameScene extends Phaser.Scene {
         this.minimapOtherPlayerDots.delete(sessionId);
       }
     }
+  }
+
+  private addGuard(guardId: string, guard: Guard) {
+    // Create sprite for guard at their position
+    const sprite = this.physics.add.sprite(
+      guard.x * GAME_CONFIG.TILE_SIZE,
+      guard.y * GAME_CONFIG.TILE_SIZE,
+      "guardStill"
+    );
+    sprite.setDepth(10);
+
+    // Set collision body
+    if (sprite.body) {
+      sprite.body.setSize(24, 24);
+      sprite.body.setOffset(4, 4);
+    }
+
+    // Add collision with walls
+    this.physics.add.collider(sprite, this.walls);
+
+    // Add collision with all room items (computers, etc.)
+    this.roomItems.forEach((item) => {
+      this.physics.add.collider(sprite, item);
+    });
+
+    // Add collision with players
+    this.physics.add.collider(sprite, this.player);
+
+    this.guards.set(guardId, sprite);
+
+    // Initialize target position for lerping
+    this.guardTargets.set(guardId, {
+      x: guard.x * GAME_CONFIG.TILE_SIZE,
+      y: guard.y * GAME_CONFIG.TILE_SIZE,
+    });
+
+    // Create walking animation
+    if (!this.anims.exists("guardWalk")) {
+      this.anims.create({
+        key: "guardWalk",
+        frames: [{ key: "guardWalk1" }, { key: "guardWalk2" }],
+        frameRate: 8,
+        repeat: -1,
+      });
+    }
+  }
+
+  private removeGuard(guardId: string) {
+    const sprite = this.guards.get(guardId);
+    if (sprite) {
+      sprite.destroy();
+      this.guards.delete(guardId);
+      this.guardTargets.delete(guardId);
+    }
+  }
+
+  private updateGuardTarget(guardId: string, guard: Guard) {
+    // Update the target position for lerping
+    this.guardTargets.set(guardId, {
+      x: guard.x * GAME_CONFIG.TILE_SIZE,
+      y: guard.y * GAME_CONFIG.TILE_SIZE,
+    });
   }
 
   private placeRoomItem(room: Room, key: string) {
@@ -803,6 +897,42 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  private lerpGuards() {
+    // Interpolate positions of all guards for smooth movement
+    this.guards.forEach((sprite, guardId) => {
+      const target = this.guardTargets.get(guardId);
+      if (!target) return;
+
+      const lerpFactor = 0.3; // Interpolation speed (0.3 = 30% per frame)
+
+      // Lerp position
+      const currentX = sprite.x;
+      const currentY = sprite.y;
+      const newX = currentX + (target.x - currentX) * lerpFactor;
+      const newY = currentY + (target.y - currentY) * lerpFactor;
+
+      sprite.setPosition(newX, newY);
+
+      // Calculate if guard is moving based on distance to target
+      const distanceToTarget = Math.sqrt(
+        Math.pow(target.x - currentX, 2) + Math.pow(target.y - currentY, 2)
+      );
+      const isMoving = distanceToTarget > 1; // Moving if more than 1 pixel from target
+
+      // Update animation based on movement
+      if (isMoving) {
+        if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== "guardWalk") {
+          sprite.play("guardWalk");
+        }
+      } else {
+        if (sprite.anims.isPlaying) {
+          sprite.stop();
+          sprite.setTexture("guardStill");
+        }
+      }
+    });
+  }
+
   private createBackground() {
     // Draw tiles
     for (let y = 0; y < GAME_CONFIG.MAP_HEIGHT; y++) {
@@ -867,10 +997,12 @@ export class GameScene extends Phaser.Scene {
                 GAME_CONFIG.TILE_SIZE,
                 GAME_CONFIG.TILE_SIZE
               );
-              wallSprite.body.setSize(
-                GAME_CONFIG.TILE_SIZE,
-                GAME_CONFIG.TILE_SIZE
-              );
+              if (wallSprite.body) {
+                wallSprite.body.setSize(
+                  GAME_CONFIG.TILE_SIZE,
+                  GAME_CONFIG.TILE_SIZE
+                );
+              }
               wallSprite.refreshBody();
             }
           }
@@ -897,10 +1029,12 @@ export class GameScene extends Phaser.Scene {
                 GAME_CONFIG.TILE_SIZE,
                 GAME_CONFIG.TILE_SIZE
               );
-              wallSprite.body.setSize(
-                GAME_CONFIG.TILE_SIZE,
-                GAME_CONFIG.TILE_SIZE
-              );
+              if (wallSprite.body) {
+                wallSprite.body.setSize(
+                  GAME_CONFIG.TILE_SIZE,
+                  GAME_CONFIG.TILE_SIZE
+                );
+              }
               wallSprite.refreshBody();
             }
           }
@@ -924,7 +1058,9 @@ export class GameScene extends Phaser.Scene {
         "wall"
       ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      if (wall.body) {
+        wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      }
       wall.refreshBody();
     }
 
@@ -936,7 +1072,9 @@ export class GameScene extends Phaser.Scene {
         "wall"
       ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      if (wall.body) {
+        wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      }
       wall.refreshBody();
     }
 
@@ -948,7 +1086,9 @@ export class GameScene extends Phaser.Scene {
         "wall"
       ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      if (wall.body) {
+        wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      }
       wall.refreshBody();
     }
 
@@ -960,7 +1100,9 @@ export class GameScene extends Phaser.Scene {
         "wall"
       ) as Phaser.Physics.Arcade.Sprite;
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      if (wall.body) {
+        wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      }
       wall.refreshBody();
     }
   }
@@ -1041,6 +1183,9 @@ export class GameScene extends Phaser.Scene {
 
     // Lerp other players' positions for smooth movement
     this.lerpOtherPlayers();
+
+    // Lerp guards' positions for smooth movement
+    this.lerpGuards();
 
     // Update minimap
     this.updateMinimap();
