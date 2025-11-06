@@ -576,6 +576,19 @@ export class GameScene extends Phaser.Scene {
         this.addConsoleOutput(data.output);
       });
 
+      // Listen for position reset (from reset command)
+      room.onMessage("reset_position", (data: { x: number; y: number }) => {
+        // Update physics body position to match server reset
+        this.player.setPosition(
+          data.x * GAME_CONFIG.TILE_SIZE,
+          data.y * GAME_CONFIG.TILE_SIZE
+        );
+        // Reset velocity to stop any movement
+        if (this.player.body && 'velocity' in this.player.body) {
+          this.player.body.velocity.set(0, 0);
+        }
+      });
+
       // Listen for room data
       room.state.rooms.onAdd((room: Room, key: string) => {
         this.rooms.set(key, room);

@@ -253,13 +253,19 @@ export class GameRoom extends Room<GameState> {
         // Regenerate map
         this.generateMap();
 
-        // Reset all player positions to spawn
-        const centerX = GAME_CONFIG.MAP_WIDTH / 2;
-        const centerY = GAME_CONFIG.MAP_HEIGHT / 2;
+        // Reset all player positions to starting location (bottom middle room)
+        const startRoomX = 4; // Middle room (0-9 grid)
+        const startRoomY = 9; // Bottom row
+        const startX = startRoomX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+        const startY = startRoomY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE * 0.75;
+
         this.state.players.forEach(p => {
-          p.x = centerX;
-          p.y = centerY;
+          p.x = startX;
+          p.y = startY;
         });
+
+        // Broadcast position reset to all clients so they update their physics bodies
+        this.broadcast('reset_position', { x: startX, y: startY });
 
         sendResponse('Map regenerated and player positions reset');
         this.broadcast('console_response', { output: 'Map has been regenerated!' });
