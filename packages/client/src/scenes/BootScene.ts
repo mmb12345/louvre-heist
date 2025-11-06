@@ -35,6 +35,7 @@ export class BootScene extends Phaser.Scene {
 
     // Load sound effects
     this.load.audio("shoot", "/assets/shoot.mp3");
+    this.load.audio("crown-picked-up", "/assets/crown-picked-up.mp3");
 
     // Load room items
     this.load.image("controlRoomComputer", "/assets/controlRoomComputer.svg");

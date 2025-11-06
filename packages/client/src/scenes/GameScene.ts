@@ -1099,6 +1099,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private showCrownPickupMessage(playerName: string) {
+    // Play crown pickup sound
+    this.sound.play("crown-picked-up", { volume: 0.2 });
+
     // Show a temporary message in the center of the screen
     const message = this.add.text(
       this.cameras.main.centerX,
@@ -1472,7 +1475,7 @@ export class GameScene extends Phaser.Scene {
     this.shootCooldown = 200; // 500ms cooldown
 
     // Play shoot sound
-    this.sound.play("shoot", { volume: 0.5 });
+    this.sound.play("shoot", { volume: 0.05 });
 
     // Change to shoot sprite
     this.player.setTexture(`${this.playerColor}Shoot`);
