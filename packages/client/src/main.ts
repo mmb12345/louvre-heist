@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
+import { PlayerSelectScene } from './scenes/PlayerSelectScene';
 import { GameScene } from './scenes/GameScene';
 import { GAME_CONFIG } from '@louvre-heist/shared';
 
@@ -9,7 +10,7 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 720,  // Viewport height
   parent: 'game-container',
   backgroundColor: '#1a1a2e',
-  scene: [BootScene, GameScene],
+  scene: [BootScene, PlayerSelectScene, GameScene],
   physics: {
     default: 'arcade',
     arcade: {

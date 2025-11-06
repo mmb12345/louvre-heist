@@ -11,12 +11,15 @@ export class GameScene extends Phaser.Scene {
   };
   private currentAngle: number = 0; // Track current facing direction
   private walls!: Phaser.Physics.Arcade.StaticGroup;
+  private playerColor!: 'pink' | 'green' | 'blue';
 
   constructor() {
     super({ key: 'GameScene' });
   }
 
   create() {
+    // Get the selected color from the registry
+    this.playerColor = this.registry.get('playerColor') || 'pink';
     // Create background grid with room divisions
     this.createBackground();
 
@@ -28,7 +31,7 @@ export class GameScene extends Phaser.Scene {
     const startX = (GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE) / 2;
     const startY = (GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE) / 2;
 
-    this.player = this.physics.add.sprite(startX, startY, 'playerStill');
+    this.player = this.physics.add.sprite(startX, startY, `${this.playerColor}Still`);
     this.player.setDepth(10);
 
     // Set smaller collision body for smoother movement
@@ -38,12 +41,12 @@ export class GameScene extends Phaser.Scene {
     // Add collision
     this.physics.add.collider(this.player, this.walls);
 
-    // Create walking animation
+    // Create walking animation with the selected color
     this.anims.create({
       key: 'walk',
       frames: [
-        { key: 'playerWalk1' },
-        { key: 'playerWalk2' },
+        { key: `${this.playerColor}Walk1` },
+        { key: `${this.playerColor}Walk2` },
       ],
       frameRate: 8, // 8 frames per second
       repeat: -1, // Loop indefinitely
@@ -277,7 +280,7 @@ export class GameScene extends Phaser.Scene {
     } else {
       // Stop animation and show still sprite, maintaining current angle
       this.player.stop();
-      this.player.setTexture('playerStill');
+      this.player.setTexture(`${this.playerColor}Still`);
       this.player.setAngle(this.currentAngle);
     }
 

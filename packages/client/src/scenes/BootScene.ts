@@ -6,10 +6,20 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load custom player sprites
-    this.load.image('playerStill', '/assets/pinkStill.svg');
-    this.load.image('playerWalk1', '/assets/pinkWalk1.svg');
-    this.load.image('playerWalk2', '/assets/pinkWalk2.svg');
+    // Load pink player sprites
+    this.load.image('pinkStill', '/assets/pinkStill.svg');
+    this.load.image('pinkWalk1', '/assets/pinkWalk1.svg');
+    this.load.image('pinkWalk2', '/assets/pinkWalk2.svg');
+
+    // Load green player sprites
+    this.load.image('greenStill', '/assets/greenStill.svg');
+    this.load.image('greenWalk1', '/assets/greenWalk1.svg');
+    this.load.image('greenWalk2', '/assets/greenWalk2.svg');
+
+    // Load blue player sprites
+    this.load.image('blueStill', '/assets/blueStill.svg');
+    this.load.image('blueWalk1', '/assets/blueWalk1.svg');
+    this.load.image('blueWalk2', '/assets/blueWalk2.svg');
 
     // Load wall sprite
     this.load.image('wall', '/assets/wall.svg');
@@ -19,8 +29,8 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    // Start game immediately
-    this.scene.start('GameScene');
+    // Start player selection scene
+    this.scene.start('PlayerSelectScene');
   }
 
   private createTileTexture() {
