@@ -661,6 +661,18 @@ export class GameRoom extends Room<GameState> {
 
   onLeave(client: Client, consented: boolean) {
     console.log(`${client.sessionId} left`);
+
+    // Check if the leaving player has the crown
+    const player = this.state.players.get(client.sessionId);
+    if (player && this.state.crown && this.state.crown.ownerId === client.sessionId) {
+      // Drop the crown at the player's last position
+      this.state.crown.x = player.x;
+      this.state.crown.y = player.y;
+      this.state.crown.pickedUp = false;
+      this.state.crown.ownerId = '';
+      console.log(`Crown dropped at (${player.x}, ${player.y}) due to player disconnect`);
+    }
+
     this.state.players.delete(client.sessionId);
 
     // If not enough players, end game
