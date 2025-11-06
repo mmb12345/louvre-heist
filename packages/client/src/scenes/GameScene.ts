@@ -133,12 +133,14 @@ export class GameScene extends Phaser.Scene {
 
             if (!isDoor) {
               const wallSprite = this.walls.create(
-                wallX * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-                (roomY * GAME_CONFIG.ROOM_SIZE + tileY) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+                wallX * GAME_CONFIG.TILE_SIZE,
+                (roomY * GAME_CONFIG.ROOM_SIZE + tileY) * GAME_CONFIG.TILE_SIZE,
                 'wall'
               ) as Phaser.Physics.Arcade.Sprite;
+              wallSprite.setOrigin(0, 0);
               wallSprite.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
               wallSprite.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+              wallSprite.body.setOffset(0, 0);
               wallSprite.refreshBody();
             }
           }
@@ -155,12 +157,14 @@ export class GameScene extends Phaser.Scene {
 
             if (!isDoor) {
               const wallSprite = this.walls.create(
-                (roomX * GAME_CONFIG.ROOM_SIZE + tileX) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-                wallY * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+                (roomX * GAME_CONFIG.ROOM_SIZE + tileX) * GAME_CONFIG.TILE_SIZE,
+                wallY * GAME_CONFIG.TILE_SIZE,
                 'wall'
               ) as Phaser.Physics.Arcade.Sprite;
+              wallSprite.setOrigin(0, 0);
               wallSprite.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
               wallSprite.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+              wallSprite.body.setOffset(0, 0);
               wallSprite.refreshBody();
             }
           }
@@ -179,48 +183,56 @@ export class GameScene extends Phaser.Scene {
     // Top wall
     for (let x = 0; x < GAME_CONFIG.MAP_WIDTH; x++) {
       const wall = this.walls.create(
-        x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-        GAME_CONFIG.TILE_SIZE / 2,
+        x * GAME_CONFIG.TILE_SIZE,
+        0,
         'wall'
       ) as Phaser.Physics.Arcade.Sprite;
+      wall.setOrigin(0, 0);
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
       wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setOffset(0, 0);
       wall.refreshBody();
     }
 
     // Bottom wall
     for (let x = 0; x < GAME_CONFIG.MAP_WIDTH; x++) {
       const wall = this.walls.create(
-        x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-        mapHeight - GAME_CONFIG.TILE_SIZE / 2,
+        x * GAME_CONFIG.TILE_SIZE,
+        mapHeight - GAME_CONFIG.TILE_SIZE,
         'wall'
       ) as Phaser.Physics.Arcade.Sprite;
+      wall.setOrigin(0, 0);
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
       wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setOffset(0, 0);
       wall.refreshBody();
     }
 
     // Left wall
     for (let y = 0; y < GAME_CONFIG.MAP_HEIGHT; y++) {
       const wall = this.walls.create(
-        GAME_CONFIG.TILE_SIZE / 2,
-        y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+        0,
+        y * GAME_CONFIG.TILE_SIZE,
         'wall'
       ) as Phaser.Physics.Arcade.Sprite;
+      wall.setOrigin(0, 0);
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
       wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setOffset(0, 0);
       wall.refreshBody();
     }
 
     // Right wall
     for (let y = 0; y < GAME_CONFIG.MAP_HEIGHT; y++) {
       const wall = this.walls.create(
-        mapWidth - GAME_CONFIG.TILE_SIZE / 2,
-        y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+        mapWidth - GAME_CONFIG.TILE_SIZE,
+        y * GAME_CONFIG.TILE_SIZE,
         'wall'
       ) as Phaser.Physics.Arcade.Sprite;
+      wall.setOrigin(0, 0);
       wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
       wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setOffset(0, 0);
       wall.refreshBody();
     }
   }
