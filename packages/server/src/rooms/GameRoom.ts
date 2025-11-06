@@ -691,8 +691,13 @@ export class GameRoom extends Room<GameState> {
       Math.pow(player.y - this.state.crown.y, 2)
     );
 
-    // If player is close enough to crown (within 5 tiles), pick it up
-    if (distance < 5) {
+    // Debug logging
+    if (distance < 15) {
+      console.log(`Player ${player.name} is ${distance.toFixed(2)} tiles from crown at (${this.state.crown.x.toFixed(2)}, ${this.state.crown.y.toFixed(2)}), player at (${player.x.toFixed(2)}, ${player.y.toFixed(2)})`);
+    }
+
+    // If player is close enough to crown (within 10 tiles), pick it up
+    if (distance < 10) {
       this.state.crown.pickedUp = true;
       this.state.crown.ownerId = player.id;
 
@@ -711,8 +716,8 @@ export class GameRoom extends Room<GameState> {
       Math.pow(player.y - this.state.postit.y, 2)
     );
 
-    // If player is close enough to post-it (within 5 tiles), pick it up
-    if (distance < 5) {
+    // If player is close enough to post-it (within 10 tiles), pick it up
+    if (distance < 10) {
       this.state.postit.pickedUp = true;
 
       console.log(`Player ${player.name} picked up the post-it with password!`);
@@ -749,8 +754,8 @@ export class GameRoom extends Room<GameState> {
       Math.pow(player.y - roomCenterY, 2)
     );
 
-    // If player is close enough to the computer (within 5 tiles), unlock the exit
-    if (distance < 5) {
+    // If player is close enough to the computer (within 10 tiles), unlock the exit
+    if (distance < 10) {
       this.state.exitDoor.unlocked = true;
 
       console.log(`Player ${player.name} unlocked the exit door!`);

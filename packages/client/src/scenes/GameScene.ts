@@ -845,6 +845,10 @@ export class GameScene extends Phaser.Scene {
         "exit_unlocked",
         (data: { playerId: string; playerName: string }) => {
           console.log(`${data.playerName} unlocked the exit door!`);
+
+          // Show alert notification
+          this.showExitUnlockedAlert(data.playerName);
+
           if (room.state.exitDoor) {
             this.renderExitDoor(room.state.exitDoor);
           }
@@ -1152,25 +1156,25 @@ export class GameScene extends Phaser.Scene {
       this.crownUIIndicator.setScrollFactor(0); // Fixed to camera
       this.crownUIIndicator.setDepth(1000); // On top of everything
 
-      // Background
-      const bg = this.add.rectangle(0, 0, 100, 40, 0x000000, 0.7);
+      // Background (larger to fit multi-line text)
+      const bg = this.add.rectangle(0, 0, 160, 60, 0x000000, 0.7);
       this.crownUIIndicator.add(bg);
 
       // Crown icon (smaller)
-      const crownIcon = this.add.sprite(-30, 0, "crown");
+      const crownIcon = this.add.sprite(-50, 0, "crown");
       crownIcon.setScale(0.3);
       this.crownUIIndicator.add(crownIcon);
 
       // Text
-      const crownText = this.add.text(0, 0, "Crown", {
-        fontSize: "16px",
+      const crownText = this.add.text(-20, 0, "Crown", {
+        fontSize: "14px",
         color: "#FFD700",
       });
       crownText.setOrigin(0, 0.5);
       this.crownUIIndicator.add(crownText);
 
-      // Position in bottom left
-      this.crownUIIndicator.setPosition(80, this.cameras.main.height - 30);
+      // Position in bottom left (adjusted for larger box)
+      this.crownUIIndicator.setPosition(100, this.cameras.main.height - 40);
     }
 
     // Show/hide based on whether someone has the crown
@@ -1270,6 +1274,11 @@ export class GameScene extends Phaser.Scene {
       this.exitDoorUnlockedText.destroy();
     }
 
+    // Only render the blue room if the exit is unlocked
+    if (!exitDoor.unlocked) {
+      return;
+    }
+
     // Create graphics for exit door (blue room on edge of map)
     this.exitDoorGraphics = this.add.graphics();
     const tileSize = GAME_CONFIG.TILE_SIZE;
@@ -1284,7 +1293,7 @@ export class GameScene extends Phaser.Scene {
     const roomWidth = tileSize * 5;
     const roomDepth = tileSize * 2;
 
-    // Always show blue room (0x3a7ebf is a nice blue color)
+    // Show blue room (0x3a7ebf is a nice blue color)
     this.exitDoorGraphics.fillStyle(0x3a7ebf, 0.6);
 
     let roomX, roomY, centerX, centerY;
@@ -1321,32 +1330,17 @@ export class GameScene extends Phaser.Scene {
 
     this.exitDoorGraphics.setDepth(1); // Above floor
 
-    // Add text label
-    if (exitDoor.unlocked) {
-      // Green "EXIT" when unlocked
-      this.exitDoorUnlockedText = this.add.text(centerX, centerY, "EXIT\nUNLOCKED", {
-        fontSize: "14px",
-        color: "#00ff00",
-        fontStyle: "bold",
-        backgroundColor: "#000000",
-        padding: { x: 4, y: 2 },
-        align: "center",
-      });
-      this.exitDoorUnlockedText.setOrigin(0.5);
-      this.exitDoorUnlockedText.setDepth(2);
-    } else {
-      // Red "LOCKED" when locked
-      this.exitDoorUnlockedText = this.add.text(centerX, centerY, "EXIT\nLOCKED", {
-        fontSize: "14px",
-        color: "#ff0000",
-        fontStyle: "bold",
-        backgroundColor: "#000000",
-        padding: { x: 4, y: 2 },
-        align: "center",
-      });
-      this.exitDoorUnlockedText.setOrigin(0.5);
-      this.exitDoorUnlockedText.setDepth(2);
-    }
+    // Add "EXIT" label
+    this.exitDoorUnlockedText = this.add.text(centerX, centerY, "EXIT", {
+      fontSize: "16px",
+      color: "#00ff00",
+      fontStyle: "bold",
+      backgroundColor: "#000000",
+      padding: { x: 4, y: 2 },
+      align: "center",
+    });
+    this.exitDoorUnlockedText.setOrigin(0.5);
+    this.exitDoorUnlockedText.setDepth(2);
   }
 
   private showPasswordUI(password: string) {
@@ -1387,6 +1381,49 @@ export class GameScene extends Phaser.Scene {
 
     // Show the password UI
     this.passwordUIIndicator.setVisible(true);
+  }
+
+  private showExitUnlockedAlert(playerName: string) {
+    // Create alert notification in center of screen
+    const centerX = this.cameras.main.width / 2;
+    const centerY = this.cameras.main.height / 2;
+
+    // Background
+    const alertBg = this.add.rectangle(centerX, centerY, 400, 150, 0x000000, 0.85);
+    alertBg.setScrollFactor(0);
+    alertBg.setDepth(2000);
+
+    // Title text
+    const titleText = this.add.text(centerX, centerY - 30, "EXIT UNLOCKED!", {
+      fontSize: "32px",
+      color: "#00ff00",
+      fontStyle: "bold",
+    });
+    titleText.setOrigin(0.5);
+    titleText.setScrollFactor(0);
+    titleText.setDepth(2001);
+
+    // Player name text
+    const playerText = this.add.text(centerX, centerY + 20, `${playerName} unlocked the exit`, {
+      fontSize: "18px",
+      color: "#ffffff",
+    });
+    playerText.setOrigin(0.5);
+    playerText.setScrollFactor(0);
+    playerText.setDepth(2001);
+
+    // Fade out after 3 seconds
+    this.tweens.add({
+      targets: [alertBg, titleText, playerText],
+      alpha: 0,
+      duration: 1000,
+      delay: 3000,
+      onComplete: () => {
+        alertBg.destroy();
+        titleText.destroy();
+        playerText.destroy();
+      }
+    });
   }
 
   private updatePlayerTarget(sessionId: string, player: Player) {
