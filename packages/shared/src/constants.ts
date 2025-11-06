@@ -1,13 +1,11 @@
 export const GAME_CONFIG = {
-  MAP_WIDTH: 50,
-  MAP_HEIGHT: 50,
   TILE_SIZE: 32,
-  MAX_PLAYERS: 3,
-  GAME_DURATION: 300, // 5 minutes in seconds
-  PLAYER_SPEED: 2,
-  GUARD_SPEED: 1.5,
-  GUARD_VISION_RANGE: 5,
-  GUARD_CATCH_RANGE: 1,
+  PLAYER_SIZE: 32, // Player sprite size in pixels
+  ROOM_SIZE: 20, // Room is 20x20 tiles
+  ROOMS_GRID: 10, // 10x10 grid of rooms
+  MAP_WIDTH: 200, // 10 rooms * 20 tiles = 200 tiles
+  MAP_HEIGHT: 200,
+  PLAYER_SPEED: 5, // Movement speed in pixels per frame
 };
 
 export const OBJECTIVES = {

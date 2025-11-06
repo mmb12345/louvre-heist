@@ -5,8 +5,8 @@ import { GAME_CONFIG } from '@louvre-heist/shared';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE,
-  height: GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE + 100, // Extra space for UI
+  width: 1280, // Viewport width
+  height: 720,  // Viewport height
   parent: 'game-container',
   backgroundColor: '#1a1a2e',
   scene: [BootScene, GameScene],
