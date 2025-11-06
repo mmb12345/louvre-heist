@@ -22,16 +22,23 @@ export class GameRoom extends Room<GameState> {
   }
 
   private setupMessageHandlers() {
-    this.onMessage('move', (client, input: PlayerInput) => {
+    this.onMessage('move', (client, input: any) => {
       const player = this.state.players.get(client.sessionId);
       if (!player || player.caught || this.state.gameOver) return;
 
-      // Update player position
-      const newX = Math.max(0, Math.min(GAME_CONFIG.MAP_WIDTH - 1, player.x + input.dx));
-      const newY = Math.max(0, Math.min(GAME_CONFIG.MAP_HEIGHT - 1, player.y + input.dy));
+      // Update player position (input now contains x, y directly from client)
+      if (input.x !== undefined && input.y !== undefined) {
+        player.x = input.x;
+        player.y = input.y;
+      }
 
-      player.x = newX;
-      player.y = newY;
+      // Update player angle and movement state
+      if (input.angle !== undefined) {
+        player.angle = input.angle;
+      }
+      if (input.isMoving !== undefined) {
+        player.isMoving = input.isMoving;
+      }
 
       // Check for objective interactions
       this.checkObjectiveInteraction(player);
@@ -127,23 +134,19 @@ export class GameRoom extends Room<GameState> {
     const player = new Player();
     player.id = client.sessionId;
     player.name = options.name || `Player ${this.state.players.size + 1}`;
+    player.color = options.color || 'pink'; // Default to pink if no color provided
 
-    // Spawn players at different starting positions
-    const spawnPositions = [
-      { x: 5, y: 5 },
-      { x: 45, y: 5 },
-      { x: 25, y: 25 },
-    ];
-    const spawnIndex = this.state.players.size % spawnPositions.length;
-    player.x = spawnPositions[spawnIndex].x;
-    player.y = spawnPositions[spawnIndex].y;
+    // Spawn players at center (they'll be at their actual client positions)
+    const centerX = GAME_CONFIG.MAP_WIDTH / 2;
+    const centerY = GAME_CONFIG.MAP_HEIGHT / 2;
+    player.x = centerX;
+    player.y = centerY;
+    player.angle = 0;
+    player.isMoving = false;
 
     this.state.players.set(client.sessionId, player);
 
-    // Start game when all players join
-    if (this.state.players.size === GAME_CONFIG.MAX_PLAYERS && !this.state.gameStarted) {
-      this.startGame();
-    }
+    console.log(`Player ${player.name} joined with color ${player.color}`);
   }
 
   private startGame() {

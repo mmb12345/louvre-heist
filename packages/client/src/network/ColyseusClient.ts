@@ -10,11 +10,12 @@ export class ColyseusClient {
     this.client = new Colyseus.Client(serverUrl);
   }
 
-  async joinOrCreate(roomId: string, playerName: string): Promise<Colyseus.Room<GameState>> {
+  async joinOrCreate(roomId: string, playerName: string, playerColor: string): Promise<Colyseus.Room<GameState>> {
     try {
       this.room = await this.client.joinOrCreate<GameState>('game', {
         roomId,
         name: playerName,
+        color: playerColor,
       });
       console.log('Joined room:', this.room.id);
       return this.room;
@@ -24,9 +25,9 @@ export class ColyseusClient {
     }
   }
 
-  sendMove(dx: number, dy: number) {
+  sendMove(x: number, y: number, angle: number, isMoving: boolean) {
     if (this.room) {
-      this.room.send('move', { dx, dy });
+      this.room.send('move', { x, y, angle, isMoving });
     }
   }
 

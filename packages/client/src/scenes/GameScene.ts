@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { GAME_CONFIG } from "@louvre-heist/shared";
+import { ColyseusClient } from "../network/ColyseusClient";
+import type { Player } from "@louvre-heist/shared";
 
 export class GameScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
@@ -13,11 +15,16 @@ export class GameScene extends Phaser.Scene {
   private walls!: Phaser.Physics.Arcade.StaticGroup;
   private playerColor!: "pink" | "green" | "blue";
 
+  // Multiplayer
+  private colyseusClient!: ColyseusClient;
+  private sessionId?: string;
+  private otherPlayers: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
+
   constructor() {
     super({ key: "GameScene" });
   }
 
-  create() {
+  async create() {
     // Get the selected color from the registry
     this.playerColor = this.registry.get("playerColor") || "pink";
     // Create background grid with room divisions
@@ -83,6 +90,128 @@ export class GameScene extends Phaser.Scene {
     });
     controlsText.setScrollFactor(0);
     controlsText.setDepth(100);
+
+    // Connect to multiplayer server
+    await this.setupMultiplayer();
+  }
+
+  private async setupMultiplayer() {
+    try {
+      this.colyseusClient = new ColyseusClient();
+      const room = await this.colyseusClient.joinOrCreate(
+        "game-room",
+        "Player",
+        this.playerColor
+      );
+
+      this.sessionId = room.sessionId;
+      console.log("Connected to multiplayer server!");
+
+      // Listen for other players joining
+      room.state.players.onAdd((player: Player, sessionId: string) => {
+        if (sessionId === this.sessionId) {
+          // This is our local player, skip
+          return;
+        }
+
+        console.log("Player joined:", sessionId, player.color);
+        this.addOtherPlayer(sessionId, player);
+      });
+
+      // Listen for other players leaving
+      room.state.players.onRemove((player: Player, sessionId: string) => {
+        console.log("Player left:", sessionId);
+        this.removeOtherPlayer(sessionId);
+      });
+
+      // Listen for player position/state changes
+      room.state.players.onChange((player: Player, sessionId: string) => {
+        if (sessionId === this.sessionId) return; // Skip our own updates
+        this.updateOtherPlayer(sessionId, player);
+      });
+    } catch (error) {
+      console.error("Failed to connect to multiplayer:", error);
+    }
+  }
+
+  private addOtherPlayer(sessionId: string, player: Player) {
+    // Create sprite for other player at their position
+    const sprite = this.physics.add.sprite(
+      player.x * GAME_CONFIG.TILE_SIZE,
+      player.y * GAME_CONFIG.TILE_SIZE,
+      `${player.color}Still`
+    );
+    sprite.setDepth(10);
+    sprite.body.setSize(24, 24);
+    sprite.body.setOffset(4, 4);
+
+    // Add collision with walls
+    this.physics.add.collider(sprite, this.walls);
+
+    this.otherPlayers.set(sessionId, sprite);
+
+    // Add player name label
+    const nameText = this.add.text(0, -40, player.name, {
+      fontSize: "14px",
+      color: "#ffffff",
+      backgroundColor: "#000000",
+      padding: { x: 4, y: 2 },
+    });
+    nameText.setOrigin(0.5);
+    sprite.setData("nameText", nameText);
+  }
+
+  private removeOtherPlayer(sessionId: string) {
+    const sprite = this.otherPlayers.get(sessionId);
+    if (sprite) {
+      const nameText = sprite.getData("nameText");
+      if (nameText) nameText.destroy();
+      sprite.destroy();
+      this.otherPlayers.delete(sessionId);
+    }
+  }
+
+  private updateOtherPlayer(sessionId: string, player: Player) {
+    const sprite = this.otherPlayers.get(sessionId);
+    if (!sprite) return;
+
+    // Update position
+    sprite.setPosition(
+      player.x * GAME_CONFIG.TILE_SIZE,
+      player.y * GAME_CONFIG.TILE_SIZE
+    );
+
+    // Update angle
+    sprite.setAngle(player.angle);
+
+    // Update animation
+    if (player.isMoving) {
+      if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== `${player.color}Walk`) {
+        // Create animation for this player color if it doesn't exist
+        const walkAnimKey = `${player.color}Walk`;
+        if (!this.anims.exists(walkAnimKey)) {
+          this.anims.create({
+            key: walkAnimKey,
+            frames: [
+              { key: `${player.color}Walk1` },
+              { key: `${player.color}Walk2` },
+            ],
+            frameRate: 8,
+            repeat: -1,
+          });
+        }
+        sprite.play(walkAnimKey);
+      }
+    } else {
+      sprite.stop();
+      sprite.setTexture(`${player.color}Still`);
+    }
+
+    // Update name label position
+    const nameText = sprite.getData("nameText");
+    if (nameText) {
+      nameText.setPosition(sprite.x, sprite.y - 40);
+    }
   }
 
   private createBackground() {
@@ -311,5 +440,13 @@ export class GameScene extends Phaser.Scene {
 
     // Update player velocity (physics handles collision)
     this.player.setVelocity(velocityX * 60, velocityY * 60);
+
+    // Send position to server
+    if (this.colyseusClient && this.colyseusClient.room) {
+      // Convert pixel position to tile position for server
+      const tileX = this.player.x / GAME_CONFIG.TILE_SIZE;
+      const tileY = this.player.y / GAME_CONFIG.TILE_SIZE;
+      this.colyseusClient.sendMove(tileX, tileY, this.currentAngle, isMoving);
+    }
   }
 }

@@ -3,8 +3,11 @@ import { Schema, type, MapSchema } from '@colyseus/schema';
 export class Player extends Schema {
   @type('string') id!: string;
   @type('string') name!: string;
+  @type('string') color!: string; // 'pink', 'green', or 'blue'
   @type('number') x!: number;
   @type('number') y!: number;
+  @type('number') angle: number = 0; // Player facing direction
+  @type('boolean') isMoving: boolean = false;
   @type('boolean') caught: boolean = false;
   @type('boolean') hasPassword: boolean = false;
 }
