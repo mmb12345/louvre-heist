@@ -20,9 +20,10 @@ export const OBJECTIVES = {
 } as const;
 
 export const ROOM_TYPES = {
+  GUARD_ROOM: 'guard_room',
   SECURITY_ROOM: 'security_room',
   CROWN_ROOM: 'crown_room',
-  PASSWORD_ROOM: 'password_room',
+  LOOT_ROOM: 'loot_room',
   EXIT: 'exit',
   HALLWAY: 'hallway',
 } as const;

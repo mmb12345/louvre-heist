@@ -1,8 +1,9 @@
 import { Room, Client } from '@colyseus/core';
-import { GameState, Player, Guard, Objective } from '@louvre-heist/shared';
+import { GameState, Player, Guard, Objective, Room as RoomSchema } from '@louvre-heist/shared';
 import {
   GAME_CONFIG,
   OBJECTIVES,
+  ROOM_TYPES,
   PATROL_PATTERNS,
   type PlayerInput,
   type PatrolPattern
@@ -16,9 +17,75 @@ export class GameRoom extends Room<GameState> {
     this.setState(new GameState());
     this.state.timeRemaining = GAME_CONFIG.GAME_DURATION;
 
+    this.generateMap();
     this.setupMessageHandlers();
     this.initializeObjectives();
     this.initializeGuards();
+  }
+
+  private generateMap() {
+    const gridSize = GAME_CONFIG.ROOMS_GRID; // 10x10 grid
+    const usedPositions = new Set<string>();
+
+    // Helper function to get random position
+    const getRandomPosition = (minX: number = 0, maxX: number = gridSize - 1, minY: number = 0, maxY: number = gridSize - 1): { x: number; y: number } => {
+      let x: number, y: number, key: string;
+      let attempts = 0;
+      do {
+        x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+        y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+        key = `${x},${y}`;
+        attempts++;
+      } while (usedPositions.has(key) && attempts < 100);
+
+      usedPositions.add(key);
+      return { x, y };
+    };
+
+    // Randomly generate special room locations
+    const specialRooms = [];
+
+    // 4 Guard rooms (spread in corners/edges)
+    specialRooms.push({ ...getRandomPosition(0, 3, 0, 3), type: ROOM_TYPES.GUARD_ROOM }); // Top-left quadrant
+    specialRooms.push({ ...getRandomPosition(6, 9, 0, 3), type: ROOM_TYPES.GUARD_ROOM }); // Top-right quadrant
+    specialRooms.push({ ...getRandomPosition(0, 3, 6, 9), type: ROOM_TYPES.GUARD_ROOM }); // Bottom-left quadrant
+    specialRooms.push({ ...getRandomPosition(6, 9, 6, 9), type: ROOM_TYPES.GUARD_ROOM }); // Bottom-right quadrant
+
+    // 1 Security room (avoid edges)
+    specialRooms.push({ ...getRandomPosition(1, 8, 1, 8), type: ROOM_TYPES.SECURITY_ROOM });
+
+    // 1 Crown room (avoid edges)
+    specialRooms.push({ ...getRandomPosition(1, 8, 1, 8), type: ROOM_TYPES.CROWN_ROOM });
+
+    // 2 Loot rooms (anywhere except edges)
+    specialRooms.push({ ...getRandomPosition(1, 8, 1, 8), type: ROOM_TYPES.LOOT_ROOM });
+    specialRooms.push({ ...getRandomPosition(1, 8, 1, 8), type: ROOM_TYPES.LOOT_ROOM });
+
+    // 1 Exit (prefer center area for balance)
+    specialRooms.push({ ...getRandomPosition(3, 6, 3, 6), type: ROOM_TYPES.EXIT });
+
+    // Create a map of special room locations for quick lookup
+    const specialRoomMap = new Map<string, string>();
+    specialRooms.forEach(room => {
+      specialRoomMap.set(`${room.x},${room.y}`, room.type);
+    });
+
+    // Generate all rooms in the grid
+    for (let gridY = 0; gridY < gridSize; gridY++) {
+      for (let gridX = 0; gridX < gridSize; gridX++) {
+        const room = new RoomSchema();
+        room.gridX = gridX;
+        room.gridY = gridY;
+
+        // Check if this is a special room
+        const key = `${gridX},${gridY}`;
+        room.roomType = specialRoomMap.get(key) || ROOM_TYPES.HALLWAY;
+
+        this.state.rooms.set(key, room);
+      }
+    }
+
+    console.log(`Generated ${this.state.rooms.size} rooms with ${specialRooms.length} special rooms`);
   }
 
   private setupMessageHandlers() {
@@ -76,6 +143,114 @@ export class GameRoom extends Room<GameState> {
         }
       });
     });
+
+    this.onMessage('console_command', (client, data: { command: string; args: string[] }) => {
+      this.handleConsoleCommand(client, data.command, data.args);
+    });
+  }
+
+  private handleConsoleCommand(client: Client, command: string, args: string[]) {
+    const sendResponse = (output: string) => {
+      client.send('console_response', { output });
+    };
+
+    const player = this.state.players.get(client.sessionId);
+    if (!player) {
+      sendResponse('Error: Player not found');
+      return;
+    }
+
+    switch (command) {
+      case 'teleport':
+        if (args.length < 2) {
+          sendResponse('Usage: teleport <x> <y>');
+          return;
+        }
+        const x = parseFloat(args[0]);
+        const y = parseFloat(args[1]);
+        if (isNaN(x) || isNaN(y)) {
+          sendResponse('Error: Invalid coordinates');
+          return;
+        }
+        player.x = x;
+        player.y = y;
+        sendResponse(`Teleported to (${x}, ${y})`);
+        break;
+
+      case 'players':
+        const playerList = Array.from(this.state.players.values())
+          .map(p => `${p.name} (${p.color}) - (${p.x.toFixed(1)}, ${p.y.toFixed(1)})`)
+          .join('\n');
+        sendResponse(`Players:\n${playerList}`);
+        break;
+
+      case 'rooms':
+        const specialRooms = Array.from(this.state.rooms.values())
+          .filter(r => r.roomType !== ROOM_TYPES.HALLWAY);
+        const roomList = specialRooms
+          .map(r => `${r.roomType} at (${r.gridX}, ${r.gridY})`)
+          .join('\n');
+        sendResponse(`Special Rooms:\n${roomList}`);
+        break;
+
+      case 'speed':
+        if (args.length < 1) {
+          sendResponse('Usage: speed <value>');
+          return;
+        }
+        const speed = parseFloat(args[0]);
+        if (isNaN(speed)) {
+          sendResponse('Error: Invalid speed value');
+          return;
+        }
+        // Note: Speed is controlled client-side, this just confirms
+        sendResponse(`Note: Speed is controlled client-side. Current request: ${speed}`);
+        break;
+
+      case 'godmode':
+        player.caught = false;
+        sendResponse('God mode activated - you cannot be caught');
+        break;
+
+      case 'objective':
+        if (args.length < 1) {
+          const objList = Array.from(this.state.objectives.values())
+            .map(o => `${o.type}: ${o.completed ? 'DONE' : 'PENDING'} at (${o.x}, ${o.y})`)
+            .join('\n');
+          sendResponse(`Objectives:\n${objList}`);
+        } else {
+          const objType = args[0];
+          const objective = Array.from(this.state.objectives.values())
+            .find(o => o.type === objType);
+          if (objective) {
+            objective.completed = true;
+            sendResponse(`Completed objective: ${objType}`);
+            this.broadcast('objective_completed', { type: objType });
+          } else {
+            sendResponse(`Error: Unknown objective "${objType}"`);
+          }
+        }
+        break;
+
+      case 'time':
+        if (args.length < 1) {
+          sendResponse(`Time remaining: ${this.state.timeRemaining} seconds`);
+        } else {
+          const newTime = parseInt(args[0]);
+          if (isNaN(newTime)) {
+            sendResponse('Error: Invalid time value');
+            return;
+          }
+          this.state.timeRemaining = newTime;
+          sendResponse(`Time set to ${newTime} seconds`);
+        }
+        break;
+
+      default:
+        sendResponse(`Unknown command: ${command}`);
+        sendResponse('Try "help" in the client console for available commands');
+        break;
+    }
   }
 
   private initializeObjectives() {

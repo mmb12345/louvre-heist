@@ -1,7 +1,8 @@
 import Phaser from "phaser";
-import { GAME_CONFIG } from "@louvre-heist/shared";
+import { GAME_CONFIG, ROOM_TYPES } from "@louvre-heist/shared";
 import { ColyseusClient } from "../network/ColyseusClient";
-import type { Player } from "@louvre-heist/shared";
+import type { Player, Room } from "@louvre-heist/shared";
+import { generatePlayerName } from "../utils/nameGenerator";
 
 export class GameScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
@@ -29,6 +30,21 @@ export class GameScene extends Phaser.Scene {
   > = new Map();
   private lastUpdateTime: number = 0;
   private updateThrottle: number = 50; // Send updates every 50ms (20 times per second)
+
+  // Minimap
+  private minimapContainer!: Phaser.GameObjects.Container;
+  private minimapPlayerDot!: Phaser.GameObjects.Circle;
+  private minimapOtherPlayerDots: Map<string, Phaser.GameObjects.Circle> = new Map();
+  private rooms: Map<string, Room> = new Map();
+
+  // Console
+  private consoleVisible: boolean = false;
+  private consoleContainer!: Phaser.GameObjects.Container;
+  private consoleInput!: Phaser.GameObjects.Text;
+  private consoleOutput!: Phaser.GameObjects.Text;
+  private consoleInputBuffer: string = "";
+  private consoleHistory: string[] = [];
+  private consoleHistoryIndex: number = -1;
 
   constructor() {
     super({ key: "GameScene" });
@@ -123,16 +139,434 @@ export class GameScene extends Phaser.Scene {
     controlsText.setScrollFactor(0);
     controlsText.setDepth(100);
 
+    // Create minimap
+    this.createMinimap();
+
+    // Create console
+    this.createConsole();
+
+    // Setup console keyboard handler
+    this.setupConsoleInput();
+
     // Connect to multiplayer server
     await this.setupMultiplayer();
+  }
+
+  private createMinimap() {
+    const minimapSize = 200; // Size of minimap in pixels
+    const minimapX = this.cameras.main.width - minimapSize - 20; // 20px from right edge
+    const minimapY = 20; // 20px from top
+    const roomSize = minimapSize / GAME_CONFIG.ROOMS_GRID; // Size of each room on minimap
+
+    // Create container for minimap
+    this.minimapContainer = this.add.container(minimapX, minimapY);
+    this.minimapContainer.setScrollFactor(0);
+    this.minimapContainer.setDepth(100);
+
+    // Background
+    const bg = this.add.rectangle(0, 0, minimapSize, minimapSize, 0x000000, 0.7);
+    bg.setOrigin(0);
+    this.minimapContainer.add(bg);
+
+    // Border
+    const border = this.add.rectangle(0, 0, minimapSize, minimapSize);
+    border.setOrigin(0);
+    border.setStrokeStyle(2, 0xffffff, 0.8);
+    this.minimapContainer.add(border);
+
+    // Draw room grid
+    const gridGraphics = this.add.graphics();
+    gridGraphics.lineStyle(1, 0xffffff, 0.3);
+
+    for (let y = 0; y <= GAME_CONFIG.ROOMS_GRID; y++) {
+      gridGraphics.lineBetween(
+        0,
+        y * roomSize,
+        minimapSize,
+        y * roomSize
+      );
+    }
+
+    for (let x = 0; x <= GAME_CONFIG.ROOMS_GRID; x++) {
+      gridGraphics.lineBetween(
+        x * roomSize,
+        0,
+        x * roomSize,
+        minimapSize
+      );
+    }
+
+    gridGraphics.setPosition(0, 0);
+    this.minimapContainer.add(gridGraphics);
+
+    // Draw wall indicators on minimap
+    this.drawMinimapWalls(roomSize);
+
+    // Create player dot
+    this.minimapPlayerDot = this.add.circle(0, 0, 4, 0xffffff);
+    this.minimapPlayerDot.setStrokeStyle(2, 0x000000);
+    this.minimapContainer.add(this.minimapPlayerDot);
+
+    // Title
+    const title = this.add.text(minimapSize / 2, -15, "MAP", {
+      fontSize: "14px",
+      color: "#ffffff",
+      fontStyle: "bold",
+    });
+    title.setOrigin(0.5);
+    this.minimapContainer.add(title);
+  }
+
+  private drawMinimapWalls(roomSize: number) {
+    const DOOR_SIZE = 9;
+    const wallGraphics = this.add.graphics();
+    wallGraphics.lineStyle(2, 0x8B7355, 0.8);
+
+    // Draw interior walls with doors
+    for (let roomY = 0; roomY < GAME_CONFIG.ROOMS_GRID; roomY++) {
+      for (let roomX = 0; roomX < GAME_CONFIG.ROOMS_GRID; roomX++) {
+        // Vertical walls
+        if (roomX < GAME_CONFIG.ROOMS_GRID - 1) {
+          const wallX = (roomX + 1) * roomSize;
+          const doorStart = Math.floor((GAME_CONFIG.ROOM_SIZE - DOOR_SIZE) / 2);
+          const doorEnd = doorStart + DOOR_SIZE;
+
+          // Draw wall segments around door
+          const wallStartY = roomY * roomSize;
+          const doorStartY = wallStartY + (doorStart / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const doorEndY = wallStartY + (doorEnd / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const wallEndY = (roomY + 1) * roomSize;
+
+          wallGraphics.lineBetween(wallX, wallStartY, wallX, doorStartY);
+          wallGraphics.lineBetween(wallX, doorEndY, wallX, wallEndY);
+        }
+
+        // Horizontal walls
+        if (roomY < GAME_CONFIG.ROOMS_GRID - 1) {
+          const wallY = (roomY + 1) * roomSize;
+          const doorStart = Math.floor((GAME_CONFIG.ROOM_SIZE - DOOR_SIZE) / 2);
+          const doorEnd = doorStart + DOOR_SIZE;
+
+          // Draw wall segments around door
+          const wallStartX = roomX * roomSize;
+          const doorStartX = wallStartX + (doorStart / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const doorEndX = wallStartX + (doorEnd / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const wallEndX = (roomX + 1) * roomSize;
+
+          wallGraphics.lineBetween(wallStartX, wallY, doorStartX, wallY);
+          wallGraphics.lineBetween(doorEndX, wallY, wallEndX, wallY);
+        }
+      }
+    }
+
+    this.minimapContainer.add(wallGraphics);
+  }
+
+  private redrawMinimapRoomTypes() {
+    const minimapSize = 200;
+    const roomSize = minimapSize / GAME_CONFIG.ROOMS_GRID;
+
+    // Remove any existing room type graphics
+    const existingRoomGraphics = this.minimapContainer.getByName("roomTypesGraphics");
+    if (existingRoomGraphics) {
+      existingRoomGraphics.destroy();
+    }
+
+    // Create graphics for room types
+    const roomGraphics = this.add.graphics();
+    roomGraphics.setName("roomTypesGraphics");
+
+    // Define colors for each room type
+    const roomColors: Record<string, number> = {
+      [ROOM_TYPES.GUARD_ROOM]: 0xFF0000,      // Red
+      [ROOM_TYPES.SECURITY_ROOM]: 0xFF6600,   // Orange
+      [ROOM_TYPES.CROWN_ROOM]: 0xFFD700,      // Gold
+      [ROOM_TYPES.LOOT_ROOM]: 0x00FF00,       // Green
+      [ROOM_TYPES.EXIT]: 0x00FFFF,            // Cyan
+      [ROOM_TYPES.HALLWAY]: 0x000000,         // Transparent/black
+    };
+
+    // Draw colored squares for special rooms
+    this.rooms.forEach((room, key) => {
+      if (room.roomType === ROOM_TYPES.HALLWAY) return; // Skip hallways
+
+      const color = roomColors[room.roomType];
+      if (color !== undefined) {
+        roomGraphics.fillStyle(color, 0.3); // 30% opacity
+        roomGraphics.fillRect(
+          room.gridX * roomSize + 1,
+          room.gridY * roomSize + 1,
+          roomSize - 2,
+          roomSize - 2
+        );
+
+        // Add a border for visibility
+        roomGraphics.lineStyle(1, color, 0.6);
+        roomGraphics.strokeRect(
+          room.gridX * roomSize + 1,
+          room.gridY * roomSize + 1,
+          roomSize - 2,
+          roomSize - 2
+        );
+      }
+    });
+
+    // Add to minimap container (insert before player dots)
+    this.minimapContainer.addAt(roomGraphics, 3); // Add after grid and walls
+  }
+
+  private updateMinimap() {
+    const minimapSize = 200;
+    const roomSize = minimapSize / GAME_CONFIG.ROOMS_GRID;
+
+    // Update player position on minimap
+    const playerTileX = this.player.x / GAME_CONFIG.TILE_SIZE;
+    const playerTileY = this.player.y / GAME_CONFIG.TILE_SIZE;
+    const minimapX = (playerTileX / GAME_CONFIG.MAP_WIDTH) * minimapSize;
+    const minimapY = (playerTileY / GAME_CONFIG.MAP_HEIGHT) * minimapSize;
+
+    this.minimapPlayerDot.setPosition(minimapX, minimapY);
+
+    // Update player dot color based on player color
+    const colorMap = {
+      pink: 0xFF00EA,
+      green: 0x00EA50,
+      blue: 0x4169E1
+    };
+    this.minimapPlayerDot.setFillStyle(colorMap[this.playerColor]);
+
+    // Update other players on minimap
+    this.otherPlayers.forEach((sprite, sessionId) => {
+      let dot = this.minimapOtherPlayerDots.get(sessionId);
+
+      if (!dot) {
+        // Create dot for new player
+        const color = sprite.getData("color");
+        dot = this.add.circle(0, 0, 3, colorMap[color as keyof typeof colorMap]);
+        dot.setStrokeStyle(1, 0x000000);
+        this.minimapContainer.add(dot);
+        this.minimapOtherPlayerDots.set(sessionId, dot);
+      }
+
+      // Update position
+      const otherPlayerTileX = sprite.x / GAME_CONFIG.TILE_SIZE;
+      const otherPlayerTileY = sprite.y / GAME_CONFIG.TILE_SIZE;
+      const otherMinimapX = (otherPlayerTileX / GAME_CONFIG.MAP_WIDTH) * minimapSize;
+      const otherMinimapY = (otherPlayerTileY / GAME_CONFIG.MAP_HEIGHT) * minimapSize;
+
+      dot.setPosition(otherMinimapX, otherMinimapY);
+    });
+  }
+
+  private createConsole() {
+    const consoleWidth = 600;
+    const consoleHeight = 400;
+    const consoleX = (this.cameras.main.width - consoleWidth) / 2;
+    const consoleY = 100;
+
+    // Create console container
+    this.consoleContainer = this.add.container(consoleX, consoleY);
+    this.consoleContainer.setScrollFactor(0);
+    this.consoleContainer.setDepth(200); // Above everything
+    this.consoleContainer.setVisible(false);
+
+    // Background
+    const bg = this.add.rectangle(0, 0, consoleWidth, consoleHeight, 0x000000, 0.9);
+    bg.setOrigin(0);
+    this.consoleContainer.add(bg);
+
+    // Border
+    const border = this.add.rectangle(0, 0, consoleWidth, consoleHeight);
+    border.setOrigin(0);
+    border.setStrokeStyle(2, 0x00ff00, 1);
+    this.consoleContainer.add(border);
+
+    // Title
+    const title = this.add.text(10, 10, "DEVELOPER CONSOLE (` or F1 to toggle)", {
+      fontSize: "16px",
+      color: "#00ff00",
+      fontStyle: "bold",
+    });
+    this.consoleContainer.add(title);
+
+    // Output area
+    this.consoleOutput = this.add.text(10, 40, "", {
+      fontSize: "14px",
+      color: "#ffffff",
+      fontFamily: "monospace",
+      wordWrap: { width: consoleWidth - 20 },
+    });
+    this.consoleContainer.add(this.consoleOutput);
+
+    // Input prompt
+    const inputPrompt = this.add.text(10, consoleHeight - 30, ">", {
+      fontSize: "14px",
+      color: "#00ff00",
+      fontFamily: "monospace",
+    });
+    this.consoleContainer.add(inputPrompt);
+
+    // Input text
+    this.consoleInput = this.add.text(25, consoleHeight - 30, "", {
+      fontSize: "14px",
+      color: "#ffffff",
+      fontFamily: "monospace",
+    });
+    this.consoleContainer.add(this.consoleInput);
+
+    // Cursor
+    const cursor = this.add.text(0, 0, "_", {
+      fontSize: "14px",
+      color: "#00ff00",
+      fontFamily: "monospace",
+    });
+    this.consoleContainer.add(cursor);
+
+    // Animate cursor
+    this.tweens.add({
+      targets: cursor,
+      alpha: 0,
+      duration: 500,
+      yoyo: true,
+      repeat: -1,
+    });
+
+    // Update cursor position
+    this.time.addEvent({
+      delay: 50,
+      callback: () => {
+        if (this.consoleVisible) {
+          const inputWidth = this.consoleInput.width;
+          cursor.setPosition(25 + inputWidth, consoleHeight - 30);
+        }
+      },
+      loop: true,
+    });
+  }
+
+  private setupConsoleInput() {
+    // Listen for all keyboard input
+    this.input.keyboard!.on("keydown", (event: KeyboardEvent) => {
+      // Toggle console with tilde/backtick or F1 key
+      if (event.key === "`" || event.key === "~" || event.code === "Backquote" || event.key === "F1") {
+        event.preventDefault();
+        this.consoleVisible = !this.consoleVisible;
+        this.consoleContainer.setVisible(this.consoleVisible);
+
+        if (this.consoleVisible) {
+          // Focus on console
+          this.consoleInputBuffer = "";
+          this.consoleInput.setText("");
+        }
+        return;
+      }
+
+      // Handle console input only when visible
+      if (!this.consoleVisible) return;
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        // Execute command
+        const command = this.consoleInputBuffer.trim();
+        if (command) {
+          this.executeCommand(command);
+          this.consoleHistory.push(command);
+          this.consoleHistoryIndex = this.consoleHistory.length;
+        }
+        this.consoleInputBuffer = "";
+        this.consoleInput.setText("");
+      } else if (event.key === "Backspace") {
+        event.preventDefault();
+        this.consoleInputBuffer = this.consoleInputBuffer.slice(0, -1);
+        this.consoleInput.setText(this.consoleInputBuffer);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        // Navigate history up
+        if (this.consoleHistoryIndex > 0) {
+          this.consoleHistoryIndex--;
+          this.consoleInputBuffer = this.consoleHistory[this.consoleHistoryIndex];
+          this.consoleInput.setText(this.consoleInputBuffer);
+        }
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        // Navigate history down
+        if (this.consoleHistoryIndex < this.consoleHistory.length - 1) {
+          this.consoleHistoryIndex++;
+          this.consoleInputBuffer = this.consoleHistory[this.consoleHistoryIndex];
+          this.consoleInput.setText(this.consoleInputBuffer);
+        } else {
+          this.consoleHistoryIndex = this.consoleHistory.length;
+          this.consoleInputBuffer = "";
+          this.consoleInput.setText("");
+        }
+      } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        // Add character to input
+        this.consoleInputBuffer += event.key;
+        this.consoleInput.setText(this.consoleInputBuffer);
+      }
+    });
+  }
+
+  private executeCommand(command: string) {
+    // Add command to output
+    this.addConsoleOutput(`> ${command}`);
+
+    // Parse command
+    const parts = command.split(" ");
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    // Handle local commands first
+    if (cmd === "help") {
+      this.addConsoleOutput("Console: Press ` (tilde) or F1 to toggle");
+      this.addConsoleOutput("");
+      this.addConsoleOutput("Available commands:");
+      this.addConsoleOutput("Local:");
+      this.addConsoleOutput("  help - Show this help message");
+      this.addConsoleOutput("  clear - Clear console output");
+      this.addConsoleOutput("Server:");
+      this.addConsoleOutput("  teleport <x> <y> - Teleport to coordinates");
+      this.addConsoleOutput("  players - List all connected players");
+      this.addConsoleOutput("  rooms - List special room locations");
+      this.addConsoleOutput("  godmode - Enable god mode (can't be caught)");
+      this.addConsoleOutput("  objective [type] - List or complete objectives");
+      this.addConsoleOutput("  time [seconds] - Get or set remaining time");
+    } else if (cmd === "clear") {
+      this.consoleOutput.setText("");
+    } else {
+      // Send to server
+      if (this.colyseusClient && this.colyseusClient.room) {
+        this.colyseusClient.room.send("console_command", { command: cmd, args });
+      } else {
+        this.addConsoleOutput("Error: Not connected to server");
+      }
+    }
+  }
+
+  private addConsoleOutput(text: string) {
+    const currentOutput = this.consoleOutput.text;
+    const lines = currentOutput.split("\n");
+
+    // Keep last 15 lines
+    if (lines.length >= 15) {
+      lines.shift();
+    }
+
+    lines.push(text);
+    this.consoleOutput.setText(lines.join("\n"));
   }
 
   private async setupMultiplayer() {
     try {
       this.colyseusClient = new ColyseusClient();
+
+      // Generate a unique player name based on color
+      const playerName = generatePlayerName(this.playerColor);
+
       const room = await this.colyseusClient.joinOrCreate(
         "game-room",
-        "Player",
+        playerName,
         this.playerColor
       );
 
@@ -161,6 +595,18 @@ export class GameScene extends Phaser.Scene {
       room.state.players.onRemove((player: Player, sessionId: string) => {
         console.log("Player left:", sessionId);
         this.removeOtherPlayer(sessionId);
+      });
+
+      // Listen for console command responses
+      room.onMessage("console_response", (data: { output: string }) => {
+        this.addConsoleOutput(data.output);
+      });
+
+      // Listen for room data
+      room.state.rooms.onAdd((room: Room, key: string) => {
+        this.rooms.set(key, room);
+        // Redraw minimap with room types
+        this.redrawMinimapRoomTypes();
       });
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
@@ -195,13 +641,14 @@ export class GameScene extends Phaser.Scene {
     });
 
     // Add player name label
-    const nameText = this.add.text(0, -40, player.name, {
-      fontSize: "14px",
+    const nameText = this.add.text(0, 0, player.name, {
+      fontSize: "16px",
       color: "#ffffff",
-      backgroundColor: "#000000",
-      padding: { x: 4, y: 2 },
+      backgroundColor: "#000000cc",
+      padding: { x: 6, y: 3 },
     });
     nameText.setOrigin(0.5);
+    nameText.setDepth(11); // Above player sprites
     sprite.setData("nameText", nameText);
   }
 
@@ -213,6 +660,13 @@ export class GameScene extends Phaser.Scene {
       sprite.destroy();
       this.otherPlayers.delete(sessionId);
       this.playerTargets.delete(sessionId);
+
+      // Remove from minimap
+      const minimapDot = this.minimapOtherPlayerDots.get(sessionId);
+      if (minimapDot) {
+        minimapDot.destroy();
+        this.minimapOtherPlayerDots.delete(sessionId);
+      }
     }
   }
 
@@ -275,10 +729,10 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
-      // Update name label position
+      // Update name label position (above the player sprite)
       const nameText = sprite.getData("nameText");
       if (nameText) {
-        nameText.setPosition(sprite.x, sprite.y - 40);
+        nameText.setPosition(sprite.x, sprite.y - 30);
       }
     });
   }
@@ -522,13 +976,16 @@ export class GameScene extends Phaser.Scene {
     // Lerp other players' positions for smooth movement
     this.lerpOtherPlayers();
 
+    // Update minimap
+    this.updateMinimap();
+
     // Update shoot cooldown
     if (this.shootCooldown > 0) {
       this.shootCooldown -= delta;
     }
 
     // Handle shooting
-    if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+    if (Phaser.Input.Keyboard.JustDown(this.spaceKey) && !this.consoleVisible) {
       this.shoot();
     }
 
@@ -558,78 +1015,81 @@ export class GameScene extends Phaser.Scene {
     let velocityX = 0;
     let velocityY = 0;
 
-    // Determine velocity from key presses
-    if (this.wasdKeys.A.isDown) {
-      velocityX = -GAME_CONFIG.PLAYER_SPEED;
-    } else if (this.wasdKeys.D.isDown) {
-      velocityX = GAME_CONFIG.PLAYER_SPEED;
-    }
-
-    if (this.wasdKeys.W.isDown) {
-      velocityY = -GAME_CONFIG.PLAYER_SPEED;
-    } else if (this.wasdKeys.S.isDown) {
-      velocityY = GAME_CONFIG.PLAYER_SPEED;
-    }
-
-    // Set rotation based on direction (check diagonals first)
-    const isMoving = velocityX !== 0 || velocityY !== 0;
-
-    if (isMoving) {
-      if (velocityY < 0 && velocityX > 0) {
-        // Up-right (W+D)
-        this.currentAngle = 225;
-      } else if (velocityY < 0 && velocityX < 0) {
-        // Up-left (W+A)
-        this.currentAngle = 135;
-      } else if (velocityY > 0 && velocityX > 0) {
-        // Down-right (S+D)
-        this.currentAngle = 315;
-      } else if (velocityY > 0 && velocityX < 0) {
-        // Down-left (S+A)
-        this.currentAngle = 45;
-      } else if (velocityY < 0) {
-        // Up (W)
-        this.currentAngle = 180;
-      } else if (velocityY > 0) {
-        // Down (S)
-        this.currentAngle = 0;
-      } else if (velocityX < 0) {
-        // Left (A)
-        this.currentAngle = 90;
-      } else if (velocityX > 0) {
-        // Right (D)
-        this.currentAngle = 270;
+    // Skip player input if console is visible
+    if (!this.consoleVisible) {
+      // Determine velocity from key presses
+      if (this.wasdKeys.A.isDown) {
+        velocityX = -GAME_CONFIG.PLAYER_SPEED;
+      } else if (this.wasdKeys.D.isDown) {
+        velocityX = GAME_CONFIG.PLAYER_SPEED;
       }
 
-      this.player.setAngle(this.currentAngle);
+      if (this.wasdKeys.W.isDown) {
+        velocityY = -GAME_CONFIG.PLAYER_SPEED;
+      } else if (this.wasdKeys.S.isDown) {
+        velocityY = GAME_CONFIG.PLAYER_SPEED;
+      }
 
-      // Play walk animation if not already playing (and not shooting)
-      if (!this.isShooting) {
-        if (!this.player.anims.isPlaying) {
-          this.player.play("walk");
+      // Set rotation based on direction (check diagonals first)
+      const isMoving = velocityX !== 0 || velocityY !== 0;
+
+      if (isMoving) {
+        if (velocityY < 0 && velocityX > 0) {
+          // Up-right (W+D)
+          this.currentAngle = 225;
+        } else if (velocityY < 0 && velocityX < 0) {
+          // Up-left (W+A)
+          this.currentAngle = 135;
+        } else if (velocityY > 0 && velocityX > 0) {
+          // Down-right (S+D)
+          this.currentAngle = 315;
+        } else if (velocityY > 0 && velocityX < 0) {
+          // Down-left (S+A)
+          this.currentAngle = 45;
+        } else if (velocityY < 0) {
+          // Up (W)
+          this.currentAngle = 180;
+        } else if (velocityY > 0) {
+          // Down (S)
+          this.currentAngle = 0;
+        } else if (velocityX < 0) {
+          // Left (A)
+          this.currentAngle = 90;
+        } else if (velocityX > 0) {
+          // Right (D)
+          this.currentAngle = 270;
+        }
+
+        this.player.setAngle(this.currentAngle);
+
+        // Play walk animation if not already playing (and not shooting)
+        if (!this.isShooting) {
+          if (!this.player.anims.isPlaying) {
+            this.player.play("walk");
+          }
+        }
+      } else {
+        // Stop animation and show still sprite, maintaining current angle (unless shooting)
+        if (!this.isShooting) {
+          this.player.stop();
+          this.player.setTexture(`${this.playerColor}Still`);
+          this.player.setAngle(this.currentAngle);
         }
       }
-    } else {
-      // Stop animation and show still sprite, maintaining current angle (unless shooting)
-      if (!this.isShooting) {
-        this.player.stop();
-        this.player.setTexture(`${this.playerColor}Still`);
-        this.player.setAngle(this.currentAngle);
+
+      // Send position to server (throttled)
+      if (this.colyseusClient && this.colyseusClient.room) {
+        if (time - this.lastUpdateTime > this.updateThrottle) {
+          // Convert pixel position to tile position for server
+          const tileX = this.player.x / GAME_CONFIG.TILE_SIZE;
+          const tileY = this.player.y / GAME_CONFIG.TILE_SIZE;
+          this.colyseusClient.sendMove(tileX, tileY, this.currentAngle, isMoving);
+          this.lastUpdateTime = time;
+        }
       }
     }
 
     // Update player velocity (physics handles collision)
     this.player.setVelocity(velocityX * 60, velocityY * 60);
-
-    // Send position to server (throttled)
-    if (this.colyseusClient && this.colyseusClient.room) {
-      if (time - this.lastUpdateTime > this.updateThrottle) {
-        // Convert pixel position to tile position for server
-        const tileX = this.player.x / GAME_CONFIG.TILE_SIZE;
-        const tileY = this.player.y / GAME_CONFIG.TILE_SIZE;
-        this.colyseusClient.sendMove(tileX, tileY, this.currentAngle, isMoving);
-        this.lastUpdateTime = time;
-      }
-    }
   }
 }
