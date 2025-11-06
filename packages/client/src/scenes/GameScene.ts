@@ -107,7 +107,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createWalls() {
-    const DOOR_SIZE = 3; // Door width in tiles
+    const DOOR_SIZE = 9; // Door width in tiles
 
     // Create walls between rooms (visible only, no collision)
     for (let roomY = 0; roomY < GAME_CONFIG.ROOMS_GRID; roomY++) {
