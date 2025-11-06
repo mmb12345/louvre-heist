@@ -5,7 +5,7 @@ export const GAME_CONFIG = {
   ROOMS_GRID: 10, // 10x10 grid of rooms
   MAP_WIDTH: 400, // 10 rooms * 40 tiles = 400 tiles
   MAP_HEIGHT: 400,
-  PLAYER_SPEED: 5, // Movement speed in pixels per frame
+  PLAYER_SPEED: 7.5, // Movement speed in pixels per frame
 };
 
 export const OBJECTIVES = {
