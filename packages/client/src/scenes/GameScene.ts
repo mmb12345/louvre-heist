@@ -9,6 +9,7 @@ export class GameScene extends Phaser.Scene {
     S: Phaser.Input.Keyboard.Key;
     D: Phaser.Input.Keyboard.Key;
   };
+  private currentAngle: number = 0; // Track current facing direction
 
   constructor() {
     super({ key: 'GameScene' });
@@ -122,44 +123,46 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Set rotation based on direction (check diagonals first)
-    if (velocityY < 0 && velocityX > 0) {
-      // Up-right (W+D)
-      this.player.setAngle(225);
-    } else if (velocityY < 0 && velocityX < 0) {
-      // Up-left (W+A)
-      this.player.setAngle(135);
-    } else if (velocityY > 0 && velocityX > 0) {
-      // Down-right (S+D)
-      this.player.setAngle(315);
-    } else if (velocityY > 0 && velocityX < 0) {
-      // Down-left (S+A)
-      this.player.setAngle(45);
-    } else if (velocityY < 0) {
-      // Up (W)
-      this.player.setAngle(180);
-    } else if (velocityY > 0) {
-      // Down (S)
-      this.player.setAngle(0);
-    } else if (velocityX < 0) {
-      // Left (A)
-      this.player.setAngle(90);
-    } else if (velocityX > 0) {
-      // Right (D)
-      this.player.setAngle(270);
-    }
-
-    // Handle walking animation
     const isMoving = velocityX !== 0 || velocityY !== 0;
 
     if (isMoving) {
+      if (velocityY < 0 && velocityX > 0) {
+        // Up-right (W+D)
+        this.currentAngle = 225;
+      } else if (velocityY < 0 && velocityX < 0) {
+        // Up-left (W+A)
+        this.currentAngle = 135;
+      } else if (velocityY > 0 && velocityX > 0) {
+        // Down-right (S+D)
+        this.currentAngle = 315;
+      } else if (velocityY > 0 && velocityX < 0) {
+        // Down-left (S+A)
+        this.currentAngle = 45;
+      } else if (velocityY < 0) {
+        // Up (W)
+        this.currentAngle = 180;
+      } else if (velocityY > 0) {
+        // Down (S)
+        this.currentAngle = 0;
+      } else if (velocityX < 0) {
+        // Left (A)
+        this.currentAngle = 90;
+      } else if (velocityX > 0) {
+        // Right (D)
+        this.currentAngle = 270;
+      }
+
+      this.player.setAngle(this.currentAngle);
+
       // Play walk animation if not already playing
       if (!this.player.anims.isPlaying) {
         this.player.play('walk');
       }
     } else {
-      // Stop animation and show still sprite
+      // Stop animation and show still sprite, maintaining current angle
       this.player.stop();
       this.player.setTexture('playerStill');
+      this.player.setAngle(this.currentAngle);
     }
 
     // Update player position with boundary checking
