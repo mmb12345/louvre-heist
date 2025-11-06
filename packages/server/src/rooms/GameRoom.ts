@@ -337,44 +337,63 @@ export class GameRoom extends Room<GameState> {
     this.state.objectives.set('exit', exit);
   }
 
-  private generateRoomPatrolPattern(roomGridX: number, roomGridY: number, patternType: number): PatrolPattern {
-    // Calculate room boundaries
-    const roomStartX = roomGridX * GAME_CONFIG.ROOM_SIZE;
-    const roomStartY = roomGridY * GAME_CONFIG.ROOM_SIZE;
-    const margin = 7; // Stay away from walls/doors
-    const minX = roomStartX + margin;
-    const maxX = roomStartX + GAME_CONFIG.ROOM_SIZE - margin;
-    const minY = roomStartY + margin;
-    const maxY = roomStartY + GAME_CONFIG.ROOM_SIZE - margin;
-    const centerX = roomStartX + GAME_CONFIG.ROOM_SIZE / 2;
-    const centerY = roomStartY + GAME_CONFIG.ROOM_SIZE / 2;
+  private getRoomCenter(gridX: number, gridY: number): { x: number; y: number } {
+    return {
+      x: gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2,
+      y: gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2,
+    };
+  }
 
-    switch (patternType % 4) {
-      case 0: // Horizontal patrol
-        return [
-          { x: minX, y: centerY },
-          { x: maxX, y: centerY },
-        ];
-      case 1: // Vertical patrol
-        return [
-          { x: centerX, y: minY },
-          { x: centerX, y: maxY },
-        ];
-      case 2: // Diagonal patrol
-        return [
-          { x: minX, y: minY },
-          { x: maxX, y: maxY },
-        ];
-      case 3: // Square patrol
-        return [
-          { x: minX, y: minY },
-          { x: maxX, y: minY },
-          { x: maxX, y: maxY },
-          { x: minX, y: maxY },
-        ];
-      default:
-        return [{ x: centerX, y: centerY }];
+  private generateRoomPatrolPattern(roomGridX: number, roomGridY: number, patternType: number): PatrolPattern {
+    // Generate patrol patterns that span 3-4 nearby rooms
+    const numRooms = 3 + Math.floor(Math.random() * 2); // 3 or 4 rooms
+    const visitedRooms: { x: number; y: number }[] = [];
+    const pattern: PatrolPattern = [];
+
+    // Start with the spawn room
+    let currentX = roomGridX;
+    let currentY = roomGridY;
+    visitedRooms.push({ x: currentX, y: currentY });
+
+    // Build a path through nearby rooms
+    for (let i = 0; i < numRooms - 1; i++) {
+      // Get possible adjacent rooms (up, down, left, right)
+      const possibleMoves: { x: number; y: number }[] = [];
+
+      // Check all four directions
+      if (currentX > 0) possibleMoves.push({ x: currentX - 1, y: currentY }); // Left
+      if (currentX < GAME_CONFIG.ROOMS_GRID - 1) possibleMoves.push({ x: currentX + 1, y: currentY }); // Right
+      if (currentY > 0) possibleMoves.push({ x: currentX, y: currentY - 1 }); // Up
+      if (currentY < GAME_CONFIG.ROOMS_GRID - 1) possibleMoves.push({ x: currentX, y: currentY + 1 }); // Down
+
+      // Filter out already visited rooms (unless we're on the last room, then we can return to start)
+      const availableMoves = possibleMoves.filter(move =>
+        !visitedRooms.some(visited => visited.x === move.x && visited.y === move.y)
+      );
+
+      // If no unvisited rooms available, use any adjacent room
+      const moves = availableMoves.length > 0 ? availableMoves : possibleMoves;
+
+      if (moves.length > 0) {
+        // Pick a random adjacent room
+        const nextRoom = moves[Math.floor(Math.random() * moves.length)];
+        currentX = nextRoom.x;
+        currentY = nextRoom.y;
+        visitedRooms.push({ x: currentX, y: currentY });
+      }
     }
+
+    // Create waypoints at the center of each visited room
+    visitedRooms.forEach(room => {
+      pattern.push(this.getRoomCenter(room.x, room.y));
+    });
+
+    // Add a return path to the first room to complete the loop
+    if (visitedRooms.length > 1) {
+      pattern.push(this.getRoomCenter(visitedRooms[0].x, visitedRooms[0].y));
+    }
+
+    return pattern;
   }
 
   private initializeGuards() {
@@ -511,9 +530,22 @@ export class GameRoom extends Room<GameState> {
       const dy = targetPoint.y - guard.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (distance < 0.5) {
+      // Use a larger threshold to ensure guards don't overshoot and get stuck
+      // Threshold should be larger than guard speed to reliably detect arrival
+      if (distance < GAME_CONFIG.GUARD_SPEED * 2) {
         // Reached patrol point, move to next
         guard.patrolIndex = (guard.patrolIndex + 1) % pattern.length;
+
+        // Get the new target and start moving towards it immediately
+        const newTarget = pattern[guard.patrolIndex];
+        const newDx = newTarget.x - guard.x;
+        const newDy = newTarget.y - guard.y;
+        const newDistance = Math.sqrt(newDx * newDx + newDy * newDy);
+
+        if (newDistance > GAME_CONFIG.GUARD_SPEED) {
+          guard.x += (newDx / newDistance) * GAME_CONFIG.GUARD_SPEED;
+          guard.y += (newDy / newDistance) * GAME_CONFIG.GUARD_SPEED;
+        }
       } else {
         // Move towards target
         guard.x += (dx / distance) * GAME_CONFIG.GUARD_SPEED;
