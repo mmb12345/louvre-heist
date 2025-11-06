@@ -1,5 +1,5 @@
 import { Room, Client } from '@colyseus/core';
-import { GameState, Player, Guard, Objective, Room as RoomSchema, Crown } from '@louvre-heist/shared';
+import { GameState, Player, Guard, Objective, Room as RoomSchema, Crown, PostIt } from '@louvre-heist/shared';
 import {
   GAME_CONFIG,
   OBJECTIVES,
@@ -22,6 +22,7 @@ export class GameRoom extends Room<GameState> {
     this.initializeObjectives();
     this.initializeGuards();
     this.initializeCrown();
+    this.initializePostIt();
 
     // Start guard movement immediately
     this.guardUpdateInterval = setInterval(() => {
@@ -118,6 +119,9 @@ export class GameRoom extends Room<GameState> {
 
       // Check for crown pickup
       this.checkCrownPickup(player);
+
+      // Check for post-it pickup
+      this.checkPostItPickup(player);
     });
 
     this.onMessage('interact', (client) => {
@@ -491,6 +495,39 @@ export class GameRoom extends Room<GameState> {
     console.log(`Crown spawned at (${crown.x.toFixed(2)}, ${crown.y.toFixed(2)}) in room (${crownRoom.gridX}, ${crownRoom.gridY})`);
   }
 
+  private initializePostIt() {
+    // Find all guard rooms
+    const guardRooms = Array.from(this.state.rooms.values()).filter(
+      room => room.roomType === ROOM_TYPES.GUARD_ROOM
+    );
+
+    if (guardRooms.length === 0) {
+      console.error('No guard rooms found!');
+      return;
+    }
+
+    // Pick a random guard room
+    const randomGuardRoom = guardRooms[Math.floor(Math.random() * guardRooms.length)];
+
+    // Calculate random position within the guard room
+    const roomCenterX = randomGuardRoom.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+    const roomCenterY = randomGuardRoom.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+
+    // Add some randomness within the room (±2 tiles from center)
+    const randomOffsetX = (Math.random() - 0.5) * 4;
+    const randomOffsetY = (Math.random() - 0.5) * 4;
+
+    const postit = new PostIt();
+    postit.x = roomCenterX + randomOffsetX;
+    postit.y = roomCenterY + randomOffsetY;
+    postit.pickedUp = false;
+    postit.password = 'Louvre';
+
+    this.state.postit = postit;
+
+    console.log(`Post-it spawned at (${postit.x.toFixed(2)}, ${postit.y.toFixed(2)}) in guard room (${randomGuardRoom.gridX}, ${randomGuardRoom.gridY})`);
+  }
+
   onJoin(client: Client, options: any) {
     console.log(`${client.sessionId} joined`);
 
@@ -624,6 +661,30 @@ export class GameRoom extends Room<GameState> {
 
       console.log(`Player ${player.name} picked up the crown!`);
       this.broadcast('crown_picked_up', { playerId: player.id, playerName: player.name });
+    }
+  }
+
+  private checkPostItPickup(player: Player) {
+    // Check if post-it exists and hasn't been picked up
+    if (!this.state.postit || this.state.postit.pickedUp) return;
+
+    // Check distance to post-it
+    const distance = Math.sqrt(
+      Math.pow(player.x - this.state.postit.x, 2) +
+      Math.pow(player.y - this.state.postit.y, 2)
+    );
+
+    // If player is close enough to post-it (within 1 tile), pick it up
+    if (distance < 1) {
+      this.state.postit.pickedUp = true;
+
+      console.log(`Player ${player.name} picked up the post-it with password!`);
+      // Broadcast to all players so everyone can see the password
+      this.broadcast('postit_picked_up', {
+        playerId: player.id,
+        playerName: player.name,
+        password: this.state.postit.password
+      });
     }
   }
 

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME_CONFIG, ROOM_TYPES } from "@louvre-heist/shared";
 import { ColyseusClient } from "../network/ColyseusClient";
-import type { Player, Room, Guard, Crown } from "@louvre-heist/shared";
+import type { Player, Room, Guard, Crown, PostIt } from "@louvre-heist/shared";
 import { generatePlayerName } from "../utils/nameGenerator";
 
 export class GameScene extends Phaser.Scene {
@@ -54,6 +54,10 @@ export class GameScene extends Phaser.Scene {
   // Crown
   private crownSprite?: Phaser.GameObjects.Sprite;
   private crownUIIndicator?: Phaser.GameObjects.Container;
+
+  // Post-it
+  private postitSprite?: Phaser.GameObjects.Sprite;
+  private passwordUIIndicator?: Phaser.GameObjects.Container;
 
   // Console
   private consoleVisible: boolean = false;
@@ -804,6 +808,33 @@ export class GameScene extends Phaser.Scene {
           this.showCrownPickupMessage(data.playerName);
         }
       );
+
+      // Use a delayed check to wait for post-it to be initialized
+      this.time.delayedCall(1000, () => {
+        if (room.state.postit) {
+          console.log("Post-it detected in room state!", room.state.postit);
+          this.renderPostIt(room.state.postit);
+
+          // Listen for post-it property changes
+          room.state.postit.onChange(() => {
+            console.log("Post-it changed!", room.state.postit);
+            if (room.state.postit) {
+              this.renderPostIt(room.state.postit);
+            }
+          });
+        } else {
+          console.log("No post-it in room state yet");
+        }
+      });
+
+      // Listen for post-it picked up event
+      room.onMessage(
+        "postit_picked_up",
+        (data: { playerId: string; playerName: string; password: string }) => {
+          console.log(`${data.playerName} picked up the post-it!`);
+          this.showPasswordUI(data.password);
+        }
+      );
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
     }
@@ -1169,6 +1200,74 @@ export class GameScene extends Phaser.Scene {
         message.destroy();
       },
     });
+  }
+
+  private renderPostIt(postit: PostIt) {
+    if (postit.pickedUp) {
+      // Post-it has been picked up, hide the world sprite
+      if (this.postitSprite) {
+        this.postitSprite.setVisible(false);
+      }
+    } else {
+      // Post-it is in the world, show it
+      if (!this.postitSprite) {
+        // Create post-it sprite
+        this.postitSprite = this.add.sprite(
+          postit.x * GAME_CONFIG.TILE_SIZE,
+          postit.y * GAME_CONFIG.TILE_SIZE,
+          "postit"
+        );
+        this.postitSprite.setDepth(5); // Below player but above floor
+        this.postitSprite.setScale(1); // Normal size
+      } else {
+        // Update position and make visible
+        this.postitSprite.setPosition(
+          postit.x * GAME_CONFIG.TILE_SIZE,
+          postit.y * GAME_CONFIG.TILE_SIZE
+        );
+        this.postitSprite.setVisible(true);
+      }
+    }
+  }
+
+  private showPasswordUI(password: string) {
+    // Create password UI indicator in lower right corner if it doesn't exist
+    if (!this.passwordUIIndicator) {
+      this.passwordUIIndicator = this.add.container(0, 0);
+      this.passwordUIIndicator.setScrollFactor(0); // Fixed to camera
+      this.passwordUIIndicator.setDepth(1000); // On top of everything
+
+      // Background
+      const bg = this.add.rectangle(0, 0, 150, 60, 0x000000, 0.8);
+      this.passwordUIIndicator.add(bg);
+
+      // Title
+      const title = this.add.text(0, -15, "PASSWORD:", {
+        fontSize: "12px",
+        color: "#FFFF00",
+        fontStyle: "bold",
+      });
+      title.setOrigin(0.5);
+      this.passwordUIIndicator.add(title);
+
+      // Password text
+      const passwordText = this.add.text(0, 5, password, {
+        fontSize: "20px",
+        color: "#FFE66D",
+        fontStyle: "bold",
+      });
+      passwordText.setOrigin(0.5);
+      this.passwordUIIndicator.add(passwordText);
+
+      // Position in lower right
+      this.passwordUIIndicator.setPosition(
+        this.cameras.main.width - 100,
+        this.cameras.main.height - 50
+      );
+    }
+
+    // Show the password UI
+    this.passwordUIIndicator.setVisible(true);
   }
 
   private updatePlayerTarget(sessionId: string, player: Player) {

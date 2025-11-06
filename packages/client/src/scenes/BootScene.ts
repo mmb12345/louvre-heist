@@ -44,6 +44,9 @@ export class BootScene extends Phaser.Scene {
     // Load crown
     this.load.image("crown", "/assets/crown.svg");
 
+    // Load post-it note
+    this.load.image("postit", "/assets/postit.svg");
+
     // Load guard sprites
     this.load.image("guardStill", "/assets/guardStill.svg");
     this.load.image("guardWalk1", "/assets/guardWalk1.svg");

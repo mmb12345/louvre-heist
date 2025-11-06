@@ -1,0 +1,16 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Post-it note background -->
+  <rect x="4" y="4" width="24" height="24" fill="#FFE66D" stroke="#E6D05C" stroke-width="1"/>
+
+  <!-- Shadow on bottom -->
+  <rect x="5" y="27" width="24" height="1" fill="#D4B84C" opacity="0.5"/>
+
+  <!-- Text lines (scribbles) -->
+  <line x1="8" y1="10" x2="24" y2="10" stroke="#333333" stroke-width="0.8"/>
+  <line x1="8" y1="14" x2="22" y2="14" stroke="#333333" stroke-width="0.8"/>
+  <line x1="8" y1="18" x2="20" y2="18" stroke="#333333" stroke-width="0.8"/>
+  <line x1="8" y1="22" x2="18" y2="22" stroke="#333333" stroke-width="0.8"/>
+
+  <!-- Corner fold -->
+  <path d="M 24 4 L 24 8 L 28 4 Z" fill="#F5DC5A"/>
+</svg>
