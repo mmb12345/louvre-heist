@@ -12,15 +12,22 @@ export class GameScene extends Phaser.Scene {
     S: Phaser.Input.Keyboard.Key;
     D: Phaser.Input.Keyboard.Key;
   };
+  private spaceKey!: Phaser.Input.Keyboard.Key;
   private currentAngle: number = 0; // Track current facing direction
   private walls!: Phaser.Physics.Arcade.StaticGroup;
   private playerColor!: "pink" | "green" | "blue";
+  private bullets!: Phaser.Physics.Arcade.Group;
+  private isShooting: boolean = false;
+  private shootCooldown: number = 0;
 
   // Multiplayer
   private colyseusClient!: ColyseusClient;
   private sessionId?: string;
   private otherPlayers: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
-  private playerTargets: Map<string, { x: number; y: number; angle: number; isMoving: boolean }> = new Map();
+  private playerTargets: Map<
+    string,
+    { x: number; y: number; angle: number; isMoving: boolean }
+  > = new Map();
   private lastUpdateTime: number = 0;
   private updateThrottle: number = 50; // Send updates every 50ms (20 times per second)
 
@@ -56,8 +63,12 @@ export class GameScene extends Phaser.Scene {
     // Create player sprite in bottom middle room
     const startRoomX = 4; // Middle room (0-9 grid)
     const startRoomY = 9; // Bottom row
-    const startX = (startRoomX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2) * GAME_CONFIG.TILE_SIZE;
-    const startY = (startRoomY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE * 0.75) * GAME_CONFIG.TILE_SIZE;
+    const startX =
+      (startRoomX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2) *
+      GAME_CONFIG.TILE_SIZE;
+    const startY =
+      (startRoomY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE * 0.75) *
+      GAME_CONFIG.TILE_SIZE;
 
     this.player = this.physics.add.sprite(
       startX,
@@ -91,6 +102,22 @@ export class GameScene extends Phaser.Scene {
       S: Phaser.Input.Keyboard.KeyCodes.S,
       D: Phaser.Input.Keyboard.KeyCodes.D,
     }) as any;
+
+    // Setup space key for shooting
+    this.spaceKey = this.input.keyboard!.addKey(
+      Phaser.Input.Keyboard.KeyCodes.SPACE
+    );
+
+    // Create bullets group
+    this.bullets = this.physics.add.group();
+
+    // Set physics world bounds to match map size
+    this.physics.world.setBounds(
+      0,
+      0,
+      GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE,
+      GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE
+    );
 
     // Setup camera to follow player
     this.cameras.main.startFollow(this.player);
@@ -698,15 +725,15 @@ export class GameScene extends Phaser.Scene {
         if (!this.anims.exists(walkAnimKey)) {
           this.anims.create({
             key: walkAnimKey,
-            frames: [
-              { key: `${color}Walk1` },
-              { key: `${color}Walk2` },
-            ],
+            frames: [{ key: `${color}Walk1` }, { key: `${color}Walk2` }],
             frameRate: 8,
             repeat: -1,
           });
         }
-        if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== walkAnimKey) {
+        if (
+          !sprite.anims.isPlaying ||
+          sprite.anims.currentAnim?.key !== walkAnimKey
+        ) {
           sprite.play(walkAnimKey);
         }
       } else {
@@ -886,7 +913,78 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  update(time: number) {
+  private shoot() {
+    if (this.isShooting || this.shootCooldown > 0) return;
+
+    // Set shooting state
+    this.isShooting = true;
+    this.shootCooldown = 500; // 500ms cooldown
+
+    // Change to shoot sprite
+    this.player.setTexture(`${this.playerColor}Shoot`);
+    this.player.setAngle(this.currentAngle);
+
+    // Calculate bullet spawn position from gun (offset from player center)
+    const angleInRadians = Phaser.Math.DegToRad(this.currentAngle);
+
+    // Adjust offsets based on direction
+    let gunForwardOffset = 35; // Distance from player center forward
+    let gunSideOffset = -50;
+
+    if (this.currentAngle === 90 || this.currentAngle === 270) {
+      gunSideOffset = -gunSideOffset; // Flip for horizontal directions
+      gunForwardOffset = -35; // Move back for left/right to reach gun end
+    }
+
+    // Calculate position: forward along facing direction + sideways perpendicular
+    const bulletStartX =
+      this.player.x +
+      Math.sin(angleInRadians) * gunForwardOffset +
+      Math.sin(angleInRadians + Math.PI / 2) * gunSideOffset;
+    const bulletStartY =
+      this.player.y +
+      Math.cos(angleInRadians) * gunForwardOffset +
+      Math.cos(angleInRadians + Math.PI / 2) * gunSideOffset;
+
+    // Create bullet as a physics sprite using the bullet texture
+    const bullet = this.physics.add.sprite(
+      bulletStartX,
+      bulletStartY,
+      "bullet"
+    );
+    bullet.setDepth(15);
+    bullet.setScale(1.5);
+
+    // Calculate bullet velocity based on current angle
+    // Note: In Phaser, angle 0 is facing down, and increases clockwise
+    const bulletSpeed = 500;
+    const velocityX = -Math.sin(angleInRadians) * bulletSpeed; // Negated for correct X direction
+    const velocityY = Math.cos(angleInRadians) * bulletSpeed;
+
+    // Store velocity on the bullet for manual updates
+    bullet.setData("velocityX", velocityX);
+    bullet.setData("velocityY", velocityY);
+
+    // Set velocity on the physics body
+    bullet.setVelocity(velocityX, velocityY);
+
+    // Add bullet to group for tracking
+    this.bullets.add(bullet);
+
+    // Auto-destroy bullet after 5 seconds
+    this.time.delayedCall(5000, () => {
+      if (bullet && bullet.active) {
+        bullet.destroy();
+      }
+    });
+
+    // Reset shooting sprite after 600ms
+    this.time.delayedCall(600, () => {
+      this.isShooting = false;
+    });
+  }
+
+  update(time: number, delta: number) {
     if (!this.player) return;
 
     // Lerp other players' positions for smooth movement
@@ -894,6 +992,39 @@ export class GameScene extends Phaser.Scene {
 
     // Update minimap
     this.updateMinimap();
+
+    // Update shoot cooldown
+    if (this.shootCooldown > 0) {
+      this.shootCooldown -= delta;
+    }
+
+    // Handle shooting
+    if (Phaser.Input.Keyboard.JustDown(this.spaceKey) && !this.consoleVisible) {
+      this.shoot();
+    }
+
+    // Update bullets - move them and remove if off screen
+    this.bullets.children.entries.forEach((bullet) => {
+      const b = bullet as Phaser.Physics.Arcade.Sprite;
+      if (b.active) {
+        // Manually update bullet position
+        const velX = b.getData("velocityX") || 0;
+        const velY = b.getData("velocityY") || 0;
+        b.x += velX * (delta / 1000);
+        b.y += velY * (delta / 1000);
+
+        // Remove bullets that go off screen
+        const bounds = this.physics.world.bounds;
+        if (
+          b.x < bounds.x ||
+          b.x > bounds.x + bounds.width ||
+          b.y < bounds.y ||
+          b.y > bounds.y + bounds.height
+        ) {
+          b.destroy();
+        }
+      }
+    });
 
     let velocityX = 0;
     let velocityY = 0;
@@ -945,15 +1076,19 @@ export class GameScene extends Phaser.Scene {
 
         this.player.setAngle(this.currentAngle);
 
-        // Play walk animation if not already playing
-        if (!this.player.anims.isPlaying) {
-          this.player.play("walk");
+        // Play walk animation if not already playing (and not shooting)
+        if (!this.isShooting) {
+          if (!this.player.anims.isPlaying) {
+            this.player.play("walk");
+          }
         }
       } else {
-        // Stop animation and show still sprite, maintaining current angle
-        this.player.stop();
-        this.player.setTexture(`${this.playerColor}Still`);
-        this.player.setAngle(this.currentAngle);
+        // Stop animation and show still sprite, maintaining current angle (unless shooting)
+        if (!this.isShooting) {
+          this.player.stop();
+          this.player.setTexture(`${this.playerColor}Still`);
+          this.player.setAngle(this.currentAngle);
+        }
       }
 
       // Send position to server (throttled)
