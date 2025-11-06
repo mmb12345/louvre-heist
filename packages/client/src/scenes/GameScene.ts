@@ -41,6 +41,7 @@ export class GameScene extends Phaser.Scene {
   private minimapPlayerDot!: Phaser.GameObjects.Circle;
   private minimapOtherPlayerDots: Map<string, Phaser.GameObjects.Circle> =
     new Map();
+  private minimapGuardDots: Map<string, Phaser.GameObjects.Circle> = new Map();
   private rooms: Map<string, Room> = new Map();
   private roomItems: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
 
@@ -371,6 +372,27 @@ export class GameScene extends Phaser.Scene {
         (otherPlayerTileY / GAME_CONFIG.MAP_HEIGHT) * minimapSize;
 
       dot.setPosition(otherMinimapX, otherMinimapY);
+    });
+
+    // Update guards on minimap
+    this.guards.forEach((sprite, guardId) => {
+      let dot = this.minimapGuardDots.get(guardId);
+
+      if (!dot) {
+        // Create dot for new guard (red/orange color to indicate danger)
+        dot = this.add.circle(0, 0, 4, 0xff0000); // Red, slightly larger than players
+        dot.setStrokeStyle(1, 0x000000);
+        this.minimapContainer.add(dot);
+        this.minimapGuardDots.set(guardId, dot);
+      }
+
+      // Update position
+      const guardTileX = sprite.x / GAME_CONFIG.TILE_SIZE;
+      const guardTileY = sprite.y / GAME_CONFIG.TILE_SIZE;
+      const guardMinimapX = (guardTileX / GAME_CONFIG.MAP_WIDTH) * minimapSize;
+      const guardMinimapY = (guardTileY / GAME_CONFIG.MAP_HEIGHT) * minimapSize;
+
+      dot.setPosition(guardMinimapX, guardMinimapY);
     });
   }
 
@@ -779,13 +801,20 @@ export class GameScene extends Phaser.Scene {
   }
 
   private addGuard(guardId: string, guard: Guard) {
+    console.log(`Creating guard sprite for ${guardId} at pixel position (${guard.x * GAME_CONFIG.TILE_SIZE}, ${guard.y * GAME_CONFIG.TILE_SIZE})`);
+
     // Create sprite for guard at their position
     const sprite = this.physics.add.sprite(
       guard.x * GAME_CONFIG.TILE_SIZE,
       guard.y * GAME_CONFIG.TILE_SIZE,
       "guardStill"
     );
+
+    // Set depth to be same as player so they're visible
     sprite.setDepth(10);
+
+    // Make guard sprite slightly larger and more visible
+    sprite.setDisplaySize(32, 32);
 
     // Set collision body
     if (sprite.body) {
@@ -805,6 +834,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(sprite, this.player);
 
     this.guards.set(guardId, sprite);
+    console.log(`Guard ${guardId} sprite created successfully. Total guards: ${this.guards.size}`);
 
     // Initialize target position for lerping
     this.guardTargets.set(guardId, {
@@ -829,6 +859,13 @@ export class GameScene extends Phaser.Scene {
       sprite.destroy();
       this.guards.delete(guardId);
       this.guardTargets.delete(guardId);
+    }
+
+    // Remove minimap dot
+    const dot = this.minimapGuardDots.get(guardId);
+    if (dot) {
+      dot.destroy();
+      this.minimapGuardDots.delete(guardId);
     }
   }
 
