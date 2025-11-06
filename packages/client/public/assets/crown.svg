@@ -1,0 +1,766 @@
+<svg width="184" height="156" viewBox="0 0 184 156" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M31 127.122C31 126.525 31.5211 126.06 32.1149 126.129L81.8099 131.879C88.2488 132.624 94.7519 132.63 101.192 131.897L151.887 126.127C152.48 126.059 153 126.523 153 127.12V148.158C153 148.645 152.668 149.057 152.188 149.138C146.582 150.081 113.209 155.537 91.5 155.5C69.8188 155.463 37.3362 150.082 31.8122 149.14C31.3336 149.058 31 148.646 31 148.16V127.122Z" fill="#C7B565"/>
+<path d="M151.936 124.643C152.235 124.604 152.5 124.837 152.5 125.139V130.207C152.5 130.456 152.343 130.643 152.127 130.688C146.631 131.819 113.201 138.511 91.5 138.5C69.8234 138.489 37.2801 131.83 31.873 130.691C31.6569 130.646 31.5001 130.458 31.5 130.211V125.141C31.5002 124.839 31.766 124.606 32.0654 124.646L80.3828 131.034C87.7625 132.01 95.2384 132.018 102.62 131.058L151.936 124.643Z" fill="#EAEAEA" stroke="#C7B565"/>
+<path d="M14 86.1161C14 73.7239 24.6747 64.0264 37.01 65.2125L89.99 70.3067C91.3269 70.4353 92.6731 70.4353 94.01 70.3067L146.99 65.2125C159.325 64.0264 170 73.7239 170 86.1161V105.044C170 115.812 161.855 124.835 151.143 125.934L94.1426 131.78C92.7179 131.926 91.2821 131.926 89.8574 131.78L32.8574 125.934C22.1452 124.835 14 115.812 14 105.044V86.1161Z" fill="#C7B565"/>
+<path d="M50 63.3702C50 61.3332 51.2358 59.4998 53.124 58.7355L90.124 43.7593C91.3273 43.2723 92.6727 43.2723 93.876 43.7593L130.876 58.7355C132.764 59.4998 134 61.3332 134 63.3702V67C134 69.7614 131.761 72 129 72H55C52.2386 72 50 69.7614 50 67V63.3702Z" fill="#C7B565"/>
+<rect x="89" width="8" height="29" rx="1" fill="#BCFFF2"/>
+<rect x="83" y="7" width="20" height="7" rx="1" fill="#BCFFF2"/>
+<circle cx="92.5" cy="42.5" r="16.5" fill="#FAFFFE"/>
+<path d="M50 65L92 67L134 65V67L92 69L50 67V65Z" fill="#FAFFFE"/>
+<circle cx="12" cy="78" r="3" fill="#6AA8FF"/>
+<ellipse cx="17" cy="75" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="22" cy="78" r="3" fill="#6AA8FF"/>
+<circle cx="12" cy="82" r="3" fill="#6AA8FF"/>
+<ellipse cx="17" cy="85" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="22" cy="82" r="3" fill="#6AA8FF"/>
+<circle cx="19.5" cy="77.5" r="2.5" fill="white"/>
+<circle cx="19.5" cy="82.5" r="2.5" fill="white"/>
+<circle cx="14.5" cy="82.5" r="2.5" fill="white"/>
+<circle cx="14.5" cy="77.5" r="2.5" fill="white"/>
+<circle cx="17" cy="80" r="4" fill="#EF6E70"/>
+<path d="M15 78L17 77.5L19 78L19.5 80L19 82L17 82.5L15 82L14.5 80L15 78Z" fill="white"/>
+<circle cx="20" cy="91" r="3" fill="#6AA8FF"/>
+<ellipse cx="25" cy="88" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="30" cy="91" r="3" fill="#6AA8FF"/>
+<circle cx="20" cy="95" r="3" fill="#6AA8FF"/>
+<ellipse cx="25" cy="98" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="30" cy="95" r="3" fill="#6AA8FF"/>
+<circle cx="27.5" cy="90.5" r="2.5" fill="white"/>
+<circle cx="27.5" cy="95.5" r="2.5" fill="white"/>
+<circle cx="22.5" cy="95.5" r="2.5" fill="white"/>
+<circle cx="22.5" cy="90.5" r="2.5" fill="white"/>
+<circle cx="25" cy="93" r="4" fill="#EF6E70"/>
+<path d="M23 91L25 90.5L27 91L27.5 93L27 95L25 95.5L23 95L22.5 93L23 91Z" fill="white"/>
+<circle cx="29" cy="104" r="3" fill="#6AA8FF"/>
+<ellipse cx="34" cy="101" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="39" cy="104" r="3" fill="#6AA8FF"/>
+<circle cx="29" cy="108" r="3" fill="#6AA8FF"/>
+<ellipse cx="34" cy="111" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="39" cy="108" r="3" fill="#6AA8FF"/>
+<circle cx="36.5" cy="103.5" r="2.5" fill="white"/>
+<circle cx="36.5" cy="108.5" r="2.5" fill="white"/>
+<circle cx="31.5" cy="108.5" r="2.5" fill="white"/>
+<circle cx="31.5" cy="103.5" r="2.5" fill="white"/>
+<circle cx="34" cy="106" r="4" fill="#EF6E70"/>
+<path d="M32 104L34 103.5L36 104L36.5 106L36 108L34 108.5L32 108L31.5 106L32 104Z" fill="white"/>
+<circle cx="29" cy="78" r="3" fill="#6AA8FF"/>
+<ellipse cx="34" cy="75" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="39" cy="78" r="3" fill="#6AA8FF"/>
+<circle cx="29" cy="82" r="3" fill="#6AA8FF"/>
+<ellipse cx="34" cy="85" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="39" cy="82" r="3" fill="#6AA8FF"/>
+<circle cx="36.5" cy="77.5" r="2.5" fill="white"/>
+<circle cx="36.5" cy="82.5" r="2.5" fill="white"/>
+<circle cx="31.5" cy="82.5" r="2.5" fill="white"/>
+<circle cx="31.5" cy="77.5" r="2.5" fill="white"/>
+<circle cx="34" cy="80" r="4" fill="#EF6E70"/>
+<path d="M32 78L34 77.5L36 78L36.5 80L36 82L34 82.5L32 82L31.5 80L32 78Z" fill="white"/>
+<circle cx="37" cy="91" r="3" fill="#6AA8FF"/>
+<ellipse cx="42" cy="88" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="47" cy="91" r="3" fill="#6AA8FF"/>
+<circle cx="37" cy="95" r="3" fill="#6AA8FF"/>
+<ellipse cx="42" cy="98" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="47" cy="95" r="3" fill="#6AA8FF"/>
+<circle cx="44.5" cy="90.5" r="2.5" fill="white"/>
+<circle cx="44.5" cy="95.5" r="2.5" fill="white"/>
+<circle cx="39.5" cy="95.5" r="2.5" fill="white"/>
+<circle cx="39.5" cy="90.5" r="2.5" fill="white"/>
+<circle cx="42" cy="93" r="4" fill="#EF6E70"/>
+<path d="M40 91L42 90.5L44 91L44.5 93L44 95L42 95.5L40 95L39.5 93L40 91Z" fill="white"/>
+<circle cx="12" cy="104" r="3" fill="#6AA8FF"/>
+<ellipse cx="17" cy="101" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="22" cy="104" r="3" fill="#6AA8FF"/>
+<circle cx="12" cy="108" r="3" fill="#6AA8FF"/>
+<ellipse cx="17" cy="111" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="22" cy="108" r="3" fill="#6AA8FF"/>
+<circle cx="19.5" cy="103.5" r="2.5" fill="white"/>
+<circle cx="19.5" cy="108.5" r="2.5" fill="white"/>
+<circle cx="14.5" cy="108.5" r="2.5" fill="white"/>
+<circle cx="14.5" cy="103.5" r="2.5" fill="white"/>
+<circle cx="17" cy="106" r="4" fill="#EF6E70"/>
+<path d="M15 104L17 103.5L19 104L19.5 106L19 108L17 108.5L15 108L14.5 106L15 104Z" fill="white"/>
+<circle cx="3" cy="91" r="3" fill="#6AA8FF"/>
+<ellipse cx="8" cy="88" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="13" cy="91" r="3" fill="#6AA8FF"/>
+<circle cx="3" cy="95" r="3" fill="#6AA8FF"/>
+<ellipse cx="8" cy="98" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="13" cy="95" r="3" fill="#6AA8FF"/>
+<circle cx="10.5" cy="90.5" r="2.5" fill="white"/>
+<circle cx="10.5" cy="95.5" r="2.5" fill="white"/>
+<circle cx="5.5" cy="95.5" r="2.5" fill="white"/>
+<circle cx="5.5" cy="90.5" r="2.5" fill="white"/>
+<circle cx="8" cy="93" r="4" fill="#EF6E70"/>
+<path d="M6 91L8 90.5L10 91L10.5 93L10 95L8 95.5L6 95L5.5 93L6 91Z" fill="white"/>
+<circle cx="79" cy="86" r="3" fill="#6AA8FF"/>
+<ellipse cx="84" cy="83" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="89" cy="86" r="3" fill="#6AA8FF"/>
+<circle cx="79" cy="90" r="3" fill="#6AA8FF"/>
+<ellipse cx="84" cy="93" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="89" cy="90" r="3" fill="#6AA8FF"/>
+<circle cx="86.5" cy="85.5" r="2.5" fill="white"/>
+<circle cx="86.5" cy="90.5" r="2.5" fill="white"/>
+<circle cx="81.5" cy="90.5" r="2.5" fill="white"/>
+<circle cx="81.5" cy="85.5" r="2.5" fill="white"/>
+<circle cx="84" cy="88" r="4" fill="#EF6E70"/>
+<path d="M82 86L84 85.5L86 86L86.5 88L86 90L84 90.5L82 90L81.5 88L82 86Z" fill="white"/>
+<circle cx="87" cy="99" r="3" fill="#6AA8FF"/>
+<ellipse cx="92" cy="96" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="97" cy="99" r="3" fill="#6AA8FF"/>
+<circle cx="87" cy="103" r="3" fill="#6AA8FF"/>
+<ellipse cx="92" cy="106" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="97" cy="103" r="3" fill="#6AA8FF"/>
+<circle cx="94.5" cy="98.5" r="2.5" fill="white"/>
+<circle cx="94.5" cy="103.5" r="2.5" fill="white"/>
+<circle cx="89.5" cy="103.5" r="2.5" fill="white"/>
+<circle cx="89.5" cy="98.5" r="2.5" fill="white"/>
+<circle cx="92" cy="101" r="4" fill="#EF6E70"/>
+<path d="M90 99L92 98.5L94 99L94.5 101L94 103L92 103.5L90 103L89.5 101L90 99Z" fill="white"/>
+<circle cx="96" cy="112" r="3" fill="#6AA8FF"/>
+<ellipse cx="101" cy="109" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="106" cy="112" r="3" fill="#6AA8FF"/>
+<circle cx="96" cy="116" r="3" fill="#6AA8FF"/>
+<ellipse cx="101" cy="119" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="106" cy="116" r="3" fill="#6AA8FF"/>
+<circle cx="103.5" cy="111.5" r="2.5" fill="white"/>
+<circle cx="103.5" cy="116.5" r="2.5" fill="white"/>
+<circle cx="98.5" cy="116.5" r="2.5" fill="white"/>
+<circle cx="98.5" cy="111.5" r="2.5" fill="white"/>
+<circle cx="101" cy="114" r="4" fill="#EF6E70"/>
+<path d="M99 112L101 111.5L103 112L103.5 114L103 116L101 116.5L99 116L98.5 114L99 112Z" fill="white"/>
+<circle cx="96" cy="86" r="3" fill="#6AA8FF"/>
+<ellipse cx="101" cy="83" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="106" cy="86" r="3" fill="#6AA8FF"/>
+<circle cx="96" cy="90" r="3" fill="#6AA8FF"/>
+<ellipse cx="101" cy="93" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="106" cy="90" r="3" fill="#6AA8FF"/>
+<circle cx="103.5" cy="85.5" r="2.5" fill="white"/>
+<circle cx="103.5" cy="90.5" r="2.5" fill="white"/>
+<circle cx="98.5" cy="90.5" r="2.5" fill="white"/>
+<circle cx="98.5" cy="85.5" r="2.5" fill="white"/>
+<circle cx="101" cy="88" r="4" fill="#EF6E70"/>
+<path d="M99 86L101 85.5L103 86L103.5 88L103 90L101 90.5L99 90L98.5 88L99 86Z" fill="white"/>
+<circle cx="104" cy="99" r="3" fill="#6AA8FF"/>
+<ellipse cx="109" cy="96" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="114" cy="99" r="3" fill="#6AA8FF"/>
+<circle cx="104" cy="103" r="3" fill="#6AA8FF"/>
+<ellipse cx="109" cy="106" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="114" cy="103" r="3" fill="#6AA8FF"/>
+<circle cx="111.5" cy="98.5" r="2.5" fill="white"/>
+<circle cx="111.5" cy="103.5" r="2.5" fill="white"/>
+<circle cx="106.5" cy="103.5" r="2.5" fill="white"/>
+<circle cx="106.5" cy="98.5" r="2.5" fill="white"/>
+<circle cx="109" cy="101" r="4" fill="#EF6E70"/>
+<path d="M107 99L109 98.5L111 99L111.5 101L111 103L109 103.5L107 103L106.5 101L107 99Z" fill="white"/>
+<circle cx="79" cy="112" r="3" fill="#6AA8FF"/>
+<ellipse cx="84" cy="109" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="89" cy="112" r="3" fill="#6AA8FF"/>
+<circle cx="79" cy="116" r="3" fill="#6AA8FF"/>
+<ellipse cx="84" cy="119" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="89" cy="116" r="3" fill="#6AA8FF"/>
+<circle cx="86.5" cy="111.5" r="2.5" fill="white"/>
+<circle cx="86.5" cy="116.5" r="2.5" fill="white"/>
+<circle cx="81.5" cy="116.5" r="2.5" fill="white"/>
+<circle cx="81.5" cy="111.5" r="2.5" fill="white"/>
+<circle cx="84" cy="114" r="4" fill="#EF6E70"/>
+<path d="M82 112L84 111.5L86 112L86.5 114L86 116L84 116.5L82 116L81.5 114L82 112Z" fill="white"/>
+<circle cx="70" cy="99" r="3" fill="#6AA8FF"/>
+<ellipse cx="75" cy="96" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="80" cy="99" r="3" fill="#6AA8FF"/>
+<circle cx="70" cy="103" r="3" fill="#6AA8FF"/>
+<ellipse cx="75" cy="106" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="80" cy="103" r="3" fill="#6AA8FF"/>
+<circle cx="77.5" cy="98.5" r="2.5" fill="white"/>
+<circle cx="77.5" cy="103.5" r="2.5" fill="white"/>
+<circle cx="72.5" cy="103.5" r="2.5" fill="white"/>
+<circle cx="72.5" cy="98.5" r="2.5" fill="white"/>
+<circle cx="75" cy="101" r="4" fill="#EF6E70"/>
+<path d="M73 99L75 98.5L77 99L77.5 101L77 103L75 103.5L73 103L72.5 101L73 99Z" fill="white"/>
+<circle cx="146" cy="77" r="3" fill="#6AA8FF"/>
+<ellipse cx="151" cy="74" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="156" cy="77" r="3" fill="#6AA8FF"/>
+<circle cx="146" cy="81" r="3" fill="#6AA8FF"/>
+<ellipse cx="151" cy="84" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="156" cy="81" r="3" fill="#6AA8FF"/>
+<circle cx="153.5" cy="76.5" r="2.5" fill="white"/>
+<circle cx="153.5" cy="81.5" r="2.5" fill="white"/>
+<circle cx="148.5" cy="81.5" r="2.5" fill="white"/>
+<circle cx="148.5" cy="76.5" r="2.5" fill="white"/>
+<circle cx="151" cy="79" r="4" fill="#EF6E70"/>
+<path d="M149 77L151 76.5L153 77L153.5 79L153 81L151 81.5L149 81L148.5 79L149 77Z" fill="white"/>
+<circle cx="154" cy="90" r="3" fill="#6AA8FF"/>
+<ellipse cx="159" cy="87" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="164" cy="90" r="3" fill="#6AA8FF"/>
+<circle cx="154" cy="94" r="3" fill="#6AA8FF"/>
+<ellipse cx="159" cy="97" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="164" cy="94" r="3" fill="#6AA8FF"/>
+<circle cx="161.5" cy="89.5" r="2.5" fill="white"/>
+<circle cx="161.5" cy="94.5" r="2.5" fill="white"/>
+<circle cx="156.5" cy="94.5" r="2.5" fill="white"/>
+<circle cx="156.5" cy="89.5" r="2.5" fill="white"/>
+<circle cx="159" cy="92" r="4" fill="#EF6E70"/>
+<path d="M157 90L159 89.5L161 90L161.5 92L161 94L159 94.5L157 94L156.5 92L157 90Z" fill="white"/>
+<circle cx="163" cy="103" r="3" fill="#6AA8FF"/>
+<ellipse cx="168" cy="100" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="173" cy="103" r="3" fill="#6AA8FF"/>
+<circle cx="163" cy="107" r="3" fill="#6AA8FF"/>
+<ellipse cx="168" cy="110" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="173" cy="107" r="3" fill="#6AA8FF"/>
+<circle cx="170.5" cy="102.5" r="2.5" fill="white"/>
+<circle cx="170.5" cy="107.5" r="2.5" fill="white"/>
+<circle cx="165.5" cy="107.5" r="2.5" fill="white"/>
+<circle cx="165.5" cy="102.5" r="2.5" fill="white"/>
+<circle cx="168" cy="105" r="4" fill="#EF6E70"/>
+<path d="M166 103L168 102.5L170 103L170.5 105L170 107L168 107.5L166 107L165.5 105L166 103Z" fill="white"/>
+<circle cx="163" cy="77" r="3" fill="#6AA8FF"/>
+<ellipse cx="168" cy="74" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="173" cy="77" r="3" fill="#6AA8FF"/>
+<circle cx="163" cy="81" r="3" fill="#6AA8FF"/>
+<ellipse cx="168" cy="84" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="173" cy="81" r="3" fill="#6AA8FF"/>
+<circle cx="170.5" cy="76.5" r="2.5" fill="white"/>
+<circle cx="170.5" cy="81.5" r="2.5" fill="white"/>
+<circle cx="165.5" cy="81.5" r="2.5" fill="white"/>
+<circle cx="165.5" cy="76.5" r="2.5" fill="white"/>
+<circle cx="168" cy="79" r="4" fill="#EF6E70"/>
+<path d="M166 77L168 76.5L170 77L170.5 79L170 81L168 81.5L166 81L165.5 79L166 77Z" fill="white"/>
+<circle cx="171" cy="90" r="3" fill="#6AA8FF"/>
+<ellipse cx="176" cy="87" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="181" cy="90" r="3" fill="#6AA8FF"/>
+<circle cx="171" cy="94" r="3" fill="#6AA8FF"/>
+<ellipse cx="176" cy="97" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="181" cy="94" r="3" fill="#6AA8FF"/>
+<circle cx="178.5" cy="89.5" r="2.5" fill="white"/>
+<circle cx="178.5" cy="94.5" r="2.5" fill="white"/>
+<circle cx="173.5" cy="94.5" r="2.5" fill="white"/>
+<circle cx="173.5" cy="89.5" r="2.5" fill="white"/>
+<circle cx="176" cy="92" r="4" fill="#EF6E70"/>
+<path d="M174 90L176 89.5L178 90L178.5 92L178 94L176 94.5L174 94L173.5 92L174 90Z" fill="white"/>
+<circle cx="146" cy="103" r="3" fill="#6AA8FF"/>
+<ellipse cx="151" cy="100" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="156" cy="103" r="3" fill="#6AA8FF"/>
+<circle cx="146" cy="107" r="3" fill="#6AA8FF"/>
+<ellipse cx="151" cy="110" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="156" cy="107" r="3" fill="#6AA8FF"/>
+<circle cx="153.5" cy="102.5" r="2.5" fill="white"/>
+<circle cx="153.5" cy="107.5" r="2.5" fill="white"/>
+<circle cx="148.5" cy="107.5" r="2.5" fill="white"/>
+<circle cx="148.5" cy="102.5" r="2.5" fill="white"/>
+<circle cx="151" cy="105" r="4" fill="#EF6E70"/>
+<path d="M149 103L151 102.5L153 103L153.5 105L153 107L151 107.5L149 107L148.5 105L149 103Z" fill="white"/>
+<circle cx="137" cy="90" r="3" fill="#6AA8FF"/>
+<ellipse cx="142" cy="87" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="147" cy="90" r="3" fill="#6AA8FF"/>
+<circle cx="137" cy="94" r="3" fill="#6AA8FF"/>
+<ellipse cx="142" cy="97" rx="4" ry="3" fill="#6AA8FF"/>
+<circle cx="147" cy="94" r="3" fill="#6AA8FF"/>
+<circle cx="144.5" cy="89.5" r="2.5" fill="white"/>
+<circle cx="144.5" cy="94.5" r="2.5" fill="white"/>
+<circle cx="139.5" cy="94.5" r="2.5" fill="white"/>
+<circle cx="139.5" cy="89.5" r="2.5" fill="white"/>
+<circle cx="142" cy="92" r="4" fill="#EF6E70"/>
+<path d="M140 90L142 89.5L144 90L144.5 92L144 94L142 94.5L140 94L139.5 92L140 90Z" fill="white"/>
+<circle cx="87.56" cy="36.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="89.46" cy="35.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="91.36" cy="36.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="87.56" cy="37.7999" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="89.46" cy="38.9399" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="91.36" cy="37.7999" r="1.14" fill="#6AA8FF"/>
+<circle cx="90.41" cy="36.09" r="0.95" fill="white"/>
+<circle cx="90.41" cy="37.9899" r="0.95" fill="white"/>
+<circle cx="88.51" cy="37.9899" r="0.95" fill="white"/>
+<circle cx="88.51" cy="36.09" r="0.95" fill="white"/>
+<circle cx="89.46" cy="37.04" r="1.52" fill="#EF6E70"/>
+<path d="M88.7 36.28L89.46 36.09L90.22 36.28L90.41 37.04L90.22 37.8L89.46 37.99L88.7 37.8L88.51 37.04L88.7 36.28Z" fill="white"/>
+<circle cx="90.6" cy="41.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="92.5" cy="40.0799" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="94.4" cy="41.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="90.6" cy="42.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="92.5" cy="43.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="94.4" cy="42.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="93.45" cy="41.03" r="0.95" fill="white"/>
+<circle cx="93.45" cy="42.93" r="0.95" fill="white"/>
+<circle cx="91.55" cy="42.93" r="0.95" fill="white"/>
+<circle cx="91.55" cy="41.03" r="0.95" fill="white"/>
+<circle cx="92.5" cy="41.98" r="1.52" fill="#EF6E70"/>
+<path d="M91.74 41.2199L92.5 41.0299L93.26 41.2199L93.45 41.9799L93.26 42.7399L92.5 42.9299L91.74 42.7399L91.55 41.9799L91.74 41.2199Z" fill="white"/>
+<circle cx="94.02" cy="46.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="95.92" cy="45.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="97.82" cy="46.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="94.02" cy="47.6799" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="95.92" cy="48.8199" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="97.82" cy="47.6799" r="1.14" fill="#6AA8FF"/>
+<circle cx="96.87" cy="45.97" r="0.95" fill="white"/>
+<circle cx="96.87" cy="47.8699" r="0.95" fill="white"/>
+<circle cx="94.97" cy="47.8699" r="0.95" fill="white"/>
+<circle cx="94.97" cy="45.97" r="0.95" fill="white"/>
+<circle cx="95.92" cy="46.9199" r="1.52" fill="#EF6E70"/>
+<path d="M95.16 46.16L95.92 45.97L96.68 46.16L96.87 46.92L96.68 47.68L95.92 47.87L95.16 47.68L94.97 46.92L95.16 46.16Z" fill="white"/>
+<circle cx="94.02" cy="36.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="95.92" cy="35.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="97.82" cy="36.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="94.02" cy="37.7999" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="95.92" cy="38.9399" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="97.82" cy="37.7999" r="1.14" fill="#6AA8FF"/>
+<circle cx="96.87" cy="36.09" r="0.95" fill="white"/>
+<circle cx="96.87" cy="37.9899" r="0.95" fill="white"/>
+<circle cx="94.97" cy="37.9899" r="0.95" fill="white"/>
+<circle cx="94.97" cy="36.09" r="0.95" fill="white"/>
+<circle cx="95.92" cy="37.04" r="1.52" fill="#EF6E70"/>
+<path d="M95.16 36.28L95.92 36.09L96.68 36.28L96.87 37.04L96.68 37.8L95.92 37.99L95.16 37.8L94.97 37.04L95.16 36.28Z" fill="white"/>
+<circle cx="97.06" cy="41.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="98.96" cy="40.0799" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="100.86" cy="41.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="97.06" cy="42.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="98.96" cy="43.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="100.86" cy="42.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="99.91" cy="41.03" r="0.95" fill="white"/>
+<circle cx="99.91" cy="42.93" r="0.95" fill="white"/>
+<circle cx="98.01" cy="42.93" r="0.95" fill="white"/>
+<circle cx="98.01" cy="41.03" r="0.95" fill="white"/>
+<circle cx="98.96" cy="41.98" r="1.52" fill="#EF6E70"/>
+<path d="M98.2 41.2199L98.96 41.0299L99.72 41.2199L99.91 41.9799L99.72 42.7399L98.96 42.9299L98.2 42.7399L98.01 41.9799L98.2 41.2199Z" fill="white"/>
+<circle cx="87.56" cy="46.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="89.46" cy="45.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="91.36" cy="46.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="87.56" cy="47.6799" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="89.46" cy="48.8199" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="91.36" cy="47.6799" r="1.14" fill="#6AA8FF"/>
+<circle cx="90.41" cy="45.97" r="0.95" fill="white"/>
+<circle cx="90.41" cy="47.8699" r="0.95" fill="white"/>
+<circle cx="88.51" cy="47.8699" r="0.95" fill="white"/>
+<circle cx="88.51" cy="45.97" r="0.95" fill="white"/>
+<circle cx="89.46" cy="46.9199" r="1.52" fill="#EF6E70"/>
+<path d="M88.7 46.16L89.46 45.97L90.22 46.16L90.41 46.92L90.22 47.68L89.46 47.87L88.7 47.68L88.51 46.92L88.7 46.16Z" fill="white"/>
+<circle cx="84.14" cy="41.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="86.04" cy="40.0799" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="87.94" cy="41.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="84.14" cy="42.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="86.04" cy="43.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="87.94" cy="42.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="86.99" cy="41.03" r="0.95" fill="white"/>
+<circle cx="86.99" cy="42.93" r="0.95" fill="white"/>
+<circle cx="85.09" cy="42.93" r="0.95" fill="white"/>
+<circle cx="85.09" cy="41.03" r="0.95" fill="white"/>
+<circle cx="86.04" cy="41.98" r="1.52" fill="#EF6E70"/>
+<path d="M85.28 41.2199L86.04 41.0299L86.8 41.2199L86.99 41.9799L86.8 42.7399L86.04 42.9299L85.28 42.7399L85.09 41.9799L85.28 41.2199Z" fill="white"/>
+<circle cx="35.56" cy="136.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="37.46" cy="135.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="39.36" cy="136.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="35.56" cy="137.8" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="37.46" cy="138.94" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="39.36" cy="137.8" r="1.14" fill="#6AA8FF"/>
+<circle cx="38.41" cy="136.09" r="0.95" fill="white"/>
+<circle cx="38.41" cy="137.99" r="0.95" fill="white"/>
+<circle cx="36.51" cy="137.99" r="0.95" fill="white"/>
+<circle cx="36.51" cy="136.09" r="0.95" fill="white"/>
+<circle cx="37.46" cy="137.04" r="1.52" fill="#EF6E70"/>
+<path d="M36.7 136.28L37.46 136.09L38.22 136.28L38.41 137.04L38.22 137.8L37.46 137.99L36.7 137.8L36.51 137.04L36.7 136.28Z" fill="white"/>
+<circle cx="38.6" cy="141.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="40.5" cy="140.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="42.4" cy="141.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="38.6" cy="142.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="40.5" cy="143.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="42.4" cy="142.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="41.45" cy="141.03" r="0.95" fill="white"/>
+<circle cx="41.45" cy="142.93" r="0.95" fill="white"/>
+<circle cx="39.55" cy="142.93" r="0.95" fill="white"/>
+<circle cx="39.55" cy="141.03" r="0.95" fill="white"/>
+<circle cx="40.5" cy="141.98" r="1.52" fill="#EF6E70"/>
+<path d="M39.74 141.22L40.5 141.03L41.26 141.22L41.45 141.98L41.26 142.74L40.5 142.93L39.74 142.74L39.55 141.98L39.74 141.22Z" fill="white"/>
+<circle cx="42.02" cy="146.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="43.92" cy="145.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="45.82" cy="146.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="42.02" cy="147.68" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="43.92" cy="148.82" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="45.82" cy="147.68" r="1.14" fill="#6AA8FF"/>
+<circle cx="44.87" cy="145.97" r="0.95" fill="white"/>
+<circle cx="44.87" cy="147.87" r="0.95" fill="white"/>
+<circle cx="42.97" cy="147.87" r="0.95" fill="white"/>
+<circle cx="42.97" cy="145.97" r="0.95" fill="white"/>
+<circle cx="43.92" cy="146.92" r="1.52" fill="#EF6E70"/>
+<path d="M43.16 146.16L43.92 145.97L44.68 146.16L44.87 146.92L44.68 147.68L43.92 147.87L43.16 147.68L42.97 146.92L43.16 146.16Z" fill="white"/>
+<circle cx="42.02" cy="136.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="43.92" cy="135.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="45.82" cy="136.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="42.02" cy="137.8" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="43.92" cy="138.94" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="45.82" cy="137.8" r="1.14" fill="#6AA8FF"/>
+<circle cx="44.87" cy="136.09" r="0.95" fill="white"/>
+<circle cx="44.87" cy="137.99" r="0.95" fill="white"/>
+<circle cx="42.97" cy="137.99" r="0.95" fill="white"/>
+<circle cx="42.97" cy="136.09" r="0.95" fill="white"/>
+<circle cx="43.92" cy="137.04" r="1.52" fill="#EF6E70"/>
+<path d="M43.16 136.28L43.92 136.09L44.68 136.28L44.87 137.04L44.68 137.8L43.92 137.99L43.16 137.8L42.97 137.04L43.16 136.28Z" fill="white"/>
+<circle cx="45.06" cy="141.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="46.96" cy="140.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="48.86" cy="141.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="45.06" cy="142.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="46.96" cy="143.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="48.86" cy="142.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="47.91" cy="141.03" r="0.95" fill="white"/>
+<circle cx="47.91" cy="142.93" r="0.95" fill="white"/>
+<circle cx="46.01" cy="142.93" r="0.95" fill="white"/>
+<circle cx="46.01" cy="141.03" r="0.95" fill="white"/>
+<circle cx="46.96" cy="141.98" r="1.52" fill="#EF6E70"/>
+<path d="M46.2 141.22L46.96 141.03L47.72 141.22L47.91 141.98L47.72 142.74L46.96 142.93L46.2 142.74L46.01 141.98L46.2 141.22Z" fill="white"/>
+<circle cx="35.56" cy="146.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="37.46" cy="145.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="39.36" cy="146.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="35.56" cy="147.68" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="37.46" cy="148.82" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="39.36" cy="147.68" r="1.14" fill="#6AA8FF"/>
+<circle cx="38.41" cy="145.97" r="0.95" fill="white"/>
+<circle cx="38.41" cy="147.87" r="0.95" fill="white"/>
+<circle cx="36.51" cy="147.87" r="0.95" fill="white"/>
+<circle cx="36.51" cy="145.97" r="0.95" fill="white"/>
+<circle cx="37.46" cy="146.92" r="1.52" fill="#EF6E70"/>
+<path d="M36.7 146.16L37.46 145.97L38.22 146.16L38.41 146.92L38.22 147.68L37.46 147.87L36.7 147.68L36.51 146.92L36.7 146.16Z" fill="white"/>
+<circle cx="32.14" cy="141.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="34.04" cy="140.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="35.94" cy="141.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="32.14" cy="142.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="34.04" cy="143.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="35.94" cy="142.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="34.99" cy="141.03" r="0.95" fill="white"/>
+<circle cx="34.99" cy="142.93" r="0.95" fill="white"/>
+<circle cx="33.09" cy="142.93" r="0.95" fill="white"/>
+<circle cx="33.09" cy="141.03" r="0.95" fill="white"/>
+<circle cx="34.04" cy="141.98" r="1.52" fill="#EF6E70"/>
+<path d="M33.28 141.22L34.04 141.03L34.8 141.22L34.99 141.98L34.8 142.74L34.04 142.93L33.28 142.74L33.09 141.98L33.28 141.22Z" fill="white"/>
+<circle cx="58.56" cy="139.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="60.46" cy="138.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="62.36" cy="139.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="58.56" cy="140.8" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="60.46" cy="141.94" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="62.36" cy="140.8" r="1.14" fill="#6AA8FF"/>
+<circle cx="61.41" cy="139.09" r="0.95" fill="white"/>
+<circle cx="61.41" cy="140.99" r="0.95" fill="white"/>
+<circle cx="59.51" cy="140.99" r="0.95" fill="white"/>
+<circle cx="59.51" cy="139.09" r="0.95" fill="white"/>
+<circle cx="60.46" cy="140.04" r="1.52" fill="#EF6E70"/>
+<path d="M59.7 139.28L60.46 139.09L61.22 139.28L61.41 140.04L61.22 140.8L60.46 140.99L59.7 140.8L59.51 140.04L59.7 139.28Z" fill="white"/>
+<circle cx="61.6" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="63.5" cy="143.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="65.4" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="61.6" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="63.5" cy="146.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="65.4" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="64.45" cy="144.03" r="0.95" fill="white"/>
+<circle cx="64.45" cy="145.93" r="0.95" fill="white"/>
+<circle cx="62.55" cy="145.93" r="0.95" fill="white"/>
+<circle cx="62.55" cy="144.03" r="0.95" fill="white"/>
+<circle cx="63.5" cy="144.98" r="1.52" fill="#EF6E70"/>
+<path d="M62.74 144.22L63.5 144.03L64.26 144.22L64.45 144.98L64.26 145.74L63.5 145.93L62.74 145.74L62.55 144.98L62.74 144.22Z" fill="white"/>
+<circle cx="65.02" cy="149.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="66.92" cy="148.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="68.82" cy="149.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="65.02" cy="150.68" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="66.92" cy="151.82" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="68.82" cy="150.68" r="1.14" fill="#6AA8FF"/>
+<circle cx="67.87" cy="148.97" r="0.95" fill="white"/>
+<circle cx="67.87" cy="150.87" r="0.95" fill="white"/>
+<circle cx="65.97" cy="150.87" r="0.95" fill="white"/>
+<circle cx="65.97" cy="148.97" r="0.95" fill="white"/>
+<circle cx="66.92" cy="149.92" r="1.52" fill="#EF6E70"/>
+<path d="M66.16 149.16L66.92 148.97L67.68 149.16L67.87 149.92L67.68 150.68L66.92 150.87L66.16 150.68L65.97 149.92L66.16 149.16Z" fill="white"/>
+<circle cx="65.02" cy="139.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="66.92" cy="138.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="68.82" cy="139.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="65.02" cy="140.8" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="66.92" cy="141.94" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="68.82" cy="140.8" r="1.14" fill="#6AA8FF"/>
+<circle cx="67.87" cy="139.09" r="0.95" fill="white"/>
+<circle cx="67.87" cy="140.99" r="0.95" fill="white"/>
+<circle cx="65.97" cy="140.99" r="0.95" fill="white"/>
+<circle cx="65.97" cy="139.09" r="0.95" fill="white"/>
+<circle cx="66.92" cy="140.04" r="1.52" fill="#EF6E70"/>
+<path d="M66.16 139.28L66.92 139.09L67.68 139.28L67.87 140.04L67.68 140.8L66.92 140.99L66.16 140.8L65.97 140.04L66.16 139.28Z" fill="white"/>
+<circle cx="68.06" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="69.96" cy="143.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="71.86" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="68.06" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="69.96" cy="146.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="71.86" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="70.91" cy="144.03" r="0.95" fill="white"/>
+<circle cx="70.91" cy="145.93" r="0.95" fill="white"/>
+<circle cx="69.01" cy="145.93" r="0.95" fill="white"/>
+<circle cx="69.01" cy="144.03" r="0.95" fill="white"/>
+<circle cx="69.96" cy="144.98" r="1.52" fill="#EF6E70"/>
+<path d="M69.2 144.22L69.96 144.03L70.72 144.22L70.91 144.98L70.72 145.74L69.96 145.93L69.2 145.74L69.01 144.98L69.2 144.22Z" fill="white"/>
+<circle cx="58.56" cy="149.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="60.46" cy="148.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="62.36" cy="149.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="58.56" cy="150.68" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="60.46" cy="151.82" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="62.36" cy="150.68" r="1.14" fill="#6AA8FF"/>
+<circle cx="61.41" cy="148.97" r="0.95" fill="white"/>
+<circle cx="61.41" cy="150.87" r="0.95" fill="white"/>
+<circle cx="59.51" cy="150.87" r="0.95" fill="white"/>
+<circle cx="59.51" cy="148.97" r="0.95" fill="white"/>
+<circle cx="60.46" cy="149.92" r="1.52" fill="#EF6E70"/>
+<path d="M59.7 149.16L60.46 148.97L61.22 149.16L61.41 149.92L61.22 150.68L60.46 150.87L59.7 150.68L59.51 149.92L59.7 149.16Z" fill="white"/>
+<circle cx="55.14" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="57.04" cy="143.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="58.94" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="55.14" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="57.04" cy="146.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="58.94" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="57.99" cy="144.03" r="0.95" fill="white"/>
+<circle cx="57.99" cy="145.93" r="0.95" fill="white"/>
+<circle cx="56.09" cy="145.93" r="0.95" fill="white"/>
+<circle cx="56.09" cy="144.03" r="0.95" fill="white"/>
+<circle cx="57.04" cy="144.98" r="1.52" fill="#EF6E70"/>
+<path d="M56.28 144.22L57.04 144.03L57.8 144.22L57.99 144.98L57.8 145.74L57.04 145.93L56.28 145.74L56.09 144.98L56.28 144.22Z" fill="white"/>
+<circle cx="83.56" cy="141.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="85.46" cy="140.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="87.36" cy="141.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="83.56" cy="142.8" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="85.46" cy="143.94" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="87.36" cy="142.8" r="1.14" fill="#6AA8FF"/>
+<circle cx="86.41" cy="141.09" r="0.95" fill="white"/>
+<circle cx="86.41" cy="142.99" r="0.95" fill="white"/>
+<circle cx="84.51" cy="142.99" r="0.95" fill="white"/>
+<circle cx="84.51" cy="141.09" r="0.95" fill="white"/>
+<circle cx="85.46" cy="142.04" r="1.52" fill="#EF6E70"/>
+<path d="M84.7 141.28L85.46 141.09L86.22 141.28L86.41 142.04L86.22 142.8L85.46 142.99L84.7 142.8L84.51 142.04L84.7 141.28Z" fill="white"/>
+<circle cx="86.6" cy="146.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="88.5" cy="145.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="90.4" cy="146.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="86.6" cy="147.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="88.5" cy="148.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="90.4" cy="147.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="89.45" cy="146.03" r="0.95" fill="white"/>
+<circle cx="89.45" cy="147.93" r="0.95" fill="white"/>
+<circle cx="87.55" cy="147.93" r="0.95" fill="white"/>
+<circle cx="87.55" cy="146.03" r="0.95" fill="white"/>
+<circle cx="88.5" cy="146.98" r="1.52" fill="#EF6E70"/>
+<path d="M87.74 146.22L88.5 146.03L89.26 146.22L89.45 146.98L89.26 147.74L88.5 147.93L87.74 147.74L87.55 146.98L87.74 146.22Z" fill="white"/>
+<circle cx="90.02" cy="151.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="91.92" cy="150.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="93.82" cy="151.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="90.02" cy="152.68" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="91.92" cy="153.82" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="93.82" cy="152.68" r="1.14" fill="#6AA8FF"/>
+<circle cx="92.87" cy="150.97" r="0.95" fill="white"/>
+<circle cx="92.87" cy="152.87" r="0.95" fill="white"/>
+<circle cx="90.97" cy="152.87" r="0.95" fill="white"/>
+<circle cx="90.97" cy="150.97" r="0.95" fill="white"/>
+<circle cx="91.92" cy="151.92" r="1.52" fill="#EF6E70"/>
+<path d="M91.16 151.16L91.92 150.97L92.68 151.16L92.87 151.92L92.68 152.68L91.92 152.87L91.16 152.68L90.97 151.92L91.16 151.16Z" fill="white"/>
+<circle cx="90.02" cy="141.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="91.92" cy="140.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="93.82" cy="141.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="90.02" cy="142.8" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="91.92" cy="143.94" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="93.82" cy="142.8" r="1.14" fill="#6AA8FF"/>
+<circle cx="92.87" cy="141.09" r="0.95" fill="white"/>
+<circle cx="92.87" cy="142.99" r="0.95" fill="white"/>
+<circle cx="90.97" cy="142.99" r="0.95" fill="white"/>
+<circle cx="90.97" cy="141.09" r="0.95" fill="white"/>
+<circle cx="91.92" cy="142.04" r="1.52" fill="#EF6E70"/>
+<path d="M91.16 141.28L91.92 141.09L92.68 141.28L92.87 142.04L92.68 142.8L91.92 142.99L91.16 142.8L90.97 142.04L91.16 141.28Z" fill="white"/>
+<circle cx="93.06" cy="146.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="94.96" cy="145.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="96.86" cy="146.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="93.06" cy="147.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="94.96" cy="148.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="96.86" cy="147.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="95.91" cy="146.03" r="0.95" fill="white"/>
+<circle cx="95.91" cy="147.93" r="0.95" fill="white"/>
+<circle cx="94.01" cy="147.93" r="0.95" fill="white"/>
+<circle cx="94.01" cy="146.03" r="0.95" fill="white"/>
+<circle cx="94.96" cy="146.98" r="1.52" fill="#EF6E70"/>
+<path d="M94.2 146.22L94.96 146.03L95.72 146.22L95.91 146.98L95.72 147.74L94.96 147.93L94.2 147.74L94.01 146.98L94.2 146.22Z" fill="white"/>
+<circle cx="83.56" cy="151.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="85.46" cy="150.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="87.36" cy="151.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="83.56" cy="152.68" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="85.46" cy="153.82" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="87.36" cy="152.68" r="1.14" fill="#6AA8FF"/>
+<circle cx="86.41" cy="150.97" r="0.95" fill="white"/>
+<circle cx="86.41" cy="152.87" r="0.95" fill="white"/>
+<circle cx="84.51" cy="152.87" r="0.95" fill="white"/>
+<circle cx="84.51" cy="150.97" r="0.95" fill="white"/>
+<circle cx="85.46" cy="151.92" r="1.52" fill="#EF6E70"/>
+<path d="M84.7 151.16L85.46 150.97L86.22 151.16L86.41 151.92L86.22 152.68L85.46 152.87L84.7 152.68L84.51 151.92L84.7 151.16Z" fill="white"/>
+<circle cx="80.14" cy="146.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="82.04" cy="145.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="83.94" cy="146.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="80.14" cy="147.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="82.04" cy="148.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="83.94" cy="147.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="82.99" cy="146.03" r="0.95" fill="white"/>
+<circle cx="82.99" cy="147.93" r="0.95" fill="white"/>
+<circle cx="81.09" cy="147.93" r="0.95" fill="white"/>
+<circle cx="81.09" cy="146.03" r="0.95" fill="white"/>
+<circle cx="82.04" cy="146.98" r="1.52" fill="#EF6E70"/>
+<path d="M81.28 146.22L82.04 146.03L82.8 146.22L82.99 146.98L82.8 147.74L82.04 147.93L81.28 147.74L81.09 146.98L81.28 146.22Z" fill="white"/>
+<circle cx="112.56" cy="139.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="114.46" cy="138.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="116.36" cy="139.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="112.56" cy="140.8" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="114.46" cy="141.94" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="116.36" cy="140.8" r="1.14" fill="#6AA8FF"/>
+<circle cx="115.41" cy="139.09" r="0.95" fill="white"/>
+<circle cx="115.41" cy="140.99" r="0.95" fill="white"/>
+<circle cx="113.51" cy="140.99" r="0.95" fill="white"/>
+<circle cx="113.51" cy="139.09" r="0.95" fill="white"/>
+<circle cx="114.46" cy="140.04" r="1.52" fill="#EF6E70"/>
+<path d="M113.7 139.28L114.46 139.09L115.22 139.28L115.41 140.04L115.22 140.8L114.46 140.99L113.7 140.8L113.51 140.04L113.7 139.28Z" fill="white"/>
+<circle cx="115.6" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="117.5" cy="143.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="119.4" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="115.6" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="117.5" cy="146.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="119.4" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="118.45" cy="144.03" r="0.95" fill="white"/>
+<circle cx="118.45" cy="145.93" r="0.95" fill="white"/>
+<circle cx="116.55" cy="145.93" r="0.95" fill="white"/>
+<circle cx="116.55" cy="144.03" r="0.95" fill="white"/>
+<circle cx="117.5" cy="144.98" r="1.52" fill="#EF6E70"/>
+<path d="M116.74 144.22L117.5 144.03L118.26 144.22L118.45 144.98L118.26 145.74L117.5 145.93L116.74 145.74L116.55 144.98L116.74 144.22Z" fill="white"/>
+<circle cx="119.02" cy="149.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="120.92" cy="148.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="122.82" cy="149.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="119.02" cy="150.68" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="120.92" cy="151.82" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="122.82" cy="150.68" r="1.14" fill="#6AA8FF"/>
+<circle cx="121.87" cy="148.97" r="0.95" fill="white"/>
+<circle cx="121.87" cy="150.87" r="0.95" fill="white"/>
+<circle cx="119.97" cy="150.87" r="0.95" fill="white"/>
+<circle cx="119.97" cy="148.97" r="0.95" fill="white"/>
+<circle cx="120.92" cy="149.92" r="1.52" fill="#EF6E70"/>
+<path d="M120.16 149.16L120.92 148.97L121.68 149.16L121.87 149.92L121.68 150.68L120.92 150.87L120.16 150.68L119.97 149.92L120.16 149.16Z" fill="white"/>
+<circle cx="119.02" cy="139.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="120.92" cy="138.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="122.82" cy="139.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="119.02" cy="140.8" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="120.92" cy="141.94" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="122.82" cy="140.8" r="1.14" fill="#6AA8FF"/>
+<circle cx="121.87" cy="139.09" r="0.95" fill="white"/>
+<circle cx="121.87" cy="140.99" r="0.95" fill="white"/>
+<circle cx="119.97" cy="140.99" r="0.95" fill="white"/>
+<circle cx="119.97" cy="139.09" r="0.95" fill="white"/>
+<circle cx="120.92" cy="140.04" r="1.52" fill="#EF6E70"/>
+<path d="M120.16 139.28L120.92 139.09L121.68 139.28L121.87 140.04L121.68 140.8L120.92 140.99L120.16 140.8L119.97 140.04L120.16 139.28Z" fill="white"/>
+<circle cx="122.06" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="123.96" cy="143.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="125.86" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="122.06" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="123.96" cy="146.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="125.86" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="124.91" cy="144.03" r="0.95" fill="white"/>
+<circle cx="124.91" cy="145.93" r="0.95" fill="white"/>
+<circle cx="123.01" cy="145.93" r="0.95" fill="white"/>
+<circle cx="123.01" cy="144.03" r="0.95" fill="white"/>
+<circle cx="123.96" cy="144.98" r="1.52" fill="#EF6E70"/>
+<path d="M123.2 144.22L123.96 144.03L124.72 144.22L124.91 144.98L124.72 145.74L123.96 145.93L123.2 145.74L123.01 144.98L123.2 144.22Z" fill="white"/>
+<circle cx="112.56" cy="149.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="114.46" cy="148.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="116.36" cy="149.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="112.56" cy="150.68" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="114.46" cy="151.82" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="116.36" cy="150.68" r="1.14" fill="#6AA8FF"/>
+<circle cx="115.41" cy="148.97" r="0.95" fill="white"/>
+<circle cx="115.41" cy="150.87" r="0.95" fill="white"/>
+<circle cx="113.51" cy="150.87" r="0.95" fill="white"/>
+<circle cx="113.51" cy="148.97" r="0.95" fill="white"/>
+<circle cx="114.46" cy="149.92" r="1.52" fill="#EF6E70"/>
+<path d="M113.7 149.16L114.46 148.97L115.22 149.16L115.41 149.92L115.22 150.68L114.46 150.87L113.7 150.68L113.51 149.92L113.7 149.16Z" fill="white"/>
+<circle cx="109.14" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="111.04" cy="143.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="112.94" cy="144.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="109.14" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="111.04" cy="146.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="112.94" cy="145.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="111.99" cy="144.03" r="0.95" fill="white"/>
+<circle cx="111.99" cy="145.93" r="0.95" fill="white"/>
+<circle cx="110.09" cy="145.93" r="0.95" fill="white"/>
+<circle cx="110.09" cy="144.03" r="0.95" fill="white"/>
+<circle cx="111.04" cy="144.98" r="1.52" fill="#EF6E70"/>
+<path d="M110.28 144.22L111.04 144.03L111.8 144.22L111.99 144.98L111.8 145.74L111.04 145.93L110.28 145.74L110.09 144.98L110.28 144.22Z" fill="white"/>
+<circle cx="139.56" cy="135.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="141.46" cy="134.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="143.36" cy="135.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="139.56" cy="136.8" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="141.46" cy="137.94" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="143.36" cy="136.8" r="1.14" fill="#6AA8FF"/>
+<circle cx="142.41" cy="135.09" r="0.95" fill="white"/>
+<circle cx="142.41" cy="136.99" r="0.95" fill="white"/>
+<circle cx="140.51" cy="136.99" r="0.95" fill="white"/>
+<circle cx="140.51" cy="135.09" r="0.95" fill="white"/>
+<circle cx="141.46" cy="136.04" r="1.52" fill="#EF6E70"/>
+<path d="M140.7 135.28L141.46 135.09L142.22 135.28L142.41 136.04L142.22 136.8L141.46 136.99L140.7 136.8L140.51 136.04L140.7 135.28Z" fill="white"/>
+<circle cx="142.6" cy="140.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="144.5" cy="139.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="146.4" cy="140.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="142.6" cy="141.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="144.5" cy="142.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="146.4" cy="141.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="145.45" cy="140.03" r="0.95" fill="white"/>
+<circle cx="145.45" cy="141.93" r="0.95" fill="white"/>
+<circle cx="143.55" cy="141.93" r="0.95" fill="white"/>
+<circle cx="143.55" cy="140.03" r="0.95" fill="white"/>
+<circle cx="144.5" cy="140.98" r="1.52" fill="#EF6E70"/>
+<path d="M143.74 140.22L144.5 140.03L145.26 140.22L145.45 140.98L145.26 141.74L144.5 141.93L143.74 141.74L143.55 140.98L143.74 140.22Z" fill="white"/>
+<circle cx="146.02" cy="145.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="147.92" cy="144.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="149.82" cy="145.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="146.02" cy="146.68" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="147.92" cy="147.82" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="149.82" cy="146.68" r="1.14" fill="#6AA8FF"/>
+<circle cx="148.87" cy="144.97" r="0.95" fill="white"/>
+<circle cx="148.87" cy="146.87" r="0.95" fill="white"/>
+<circle cx="146.97" cy="146.87" r="0.95" fill="white"/>
+<circle cx="146.97" cy="144.97" r="0.95" fill="white"/>
+<circle cx="147.92" cy="145.92" r="1.52" fill="#EF6E70"/>
+<path d="M147.16 145.16L147.92 144.97L148.68 145.16L148.87 145.92L148.68 146.68L147.92 146.87L147.16 146.68L146.97 145.92L147.16 145.16Z" fill="white"/>
+<circle cx="146.02" cy="135.28" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="147.92" cy="134.14" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="149.82" cy="135.28" r="1.14" fill="#6AA8FF"/>
+<circle cx="146.02" cy="136.8" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="147.92" cy="137.94" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="149.82" cy="136.8" r="1.14" fill="#6AA8FF"/>
+<circle cx="148.87" cy="135.09" r="0.95" fill="white"/>
+<circle cx="148.87" cy="136.99" r="0.95" fill="white"/>
+<circle cx="146.97" cy="136.99" r="0.95" fill="white"/>
+<circle cx="146.97" cy="135.09" r="0.95" fill="white"/>
+<circle cx="147.92" cy="136.04" r="1.52" fill="#EF6E70"/>
+<path d="M147.16 135.28L147.92 135.09L148.68 135.28L148.87 136.04L148.68 136.8L147.92 136.99L147.16 136.8L146.97 136.04L147.16 135.28Z" fill="white"/>
+<circle cx="149.06" cy="140.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="150.96" cy="139.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="152.86" cy="140.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="149.06" cy="141.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="150.96" cy="142.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="152.86" cy="141.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="151.91" cy="140.03" r="0.95" fill="white"/>
+<circle cx="151.91" cy="141.93" r="0.95" fill="white"/>
+<circle cx="150.01" cy="141.93" r="0.95" fill="white"/>
+<circle cx="150.01" cy="140.03" r="0.95" fill="white"/>
+<circle cx="150.96" cy="140.98" r="1.52" fill="#EF6E70"/>
+<path d="M150.2 140.22L150.96 140.03L151.72 140.22L151.91 140.98L151.72 141.74L150.96 141.93L150.2 141.74L150.01 140.98L150.2 140.22Z" fill="white"/>
+<circle cx="139.56" cy="145.16" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="141.46" cy="144.02" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="143.36" cy="145.16" r="1.14" fill="#6AA8FF"/>
+<circle cx="139.56" cy="146.68" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="141.46" cy="147.82" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="143.36" cy="146.68" r="1.14" fill="#6AA8FF"/>
+<circle cx="142.41" cy="144.97" r="0.95" fill="white"/>
+<circle cx="142.41" cy="146.87" r="0.95" fill="white"/>
+<circle cx="140.51" cy="146.87" r="0.95" fill="white"/>
+<circle cx="140.51" cy="144.97" r="0.95" fill="white"/>
+<circle cx="141.46" cy="145.92" r="1.52" fill="#EF6E70"/>
+<path d="M140.7 145.16L141.46 144.97L142.22 145.16L142.41 145.92L142.22 146.68L141.46 146.87L140.7 146.68L140.51 145.92L140.7 145.16Z" fill="white"/>
+<circle cx="136.14" cy="140.22" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="138.04" cy="139.08" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="139.94" cy="140.22" r="1.14" fill="#6AA8FF"/>
+<circle cx="136.14" cy="141.74" r="1.14" fill="#6AA8FF"/>
+<ellipse cx="138.04" cy="142.88" rx="1.52" ry="1.14" fill="#6AA8FF"/>
+<circle cx="139.94" cy="141.74" r="1.14" fill="#6AA8FF"/>
+<circle cx="138.99" cy="140.03" r="0.95" fill="white"/>
+<circle cx="138.99" cy="141.93" r="0.95" fill="white"/>
+<circle cx="137.09" cy="141.93" r="0.95" fill="white"/>
+<circle cx="137.09" cy="140.03" r="0.95" fill="white"/>
+<circle cx="138.04" cy="140.98" r="1.52" fill="#EF6E70"/>
+<path d="M137.28 140.22L138.04 140.03L138.8 140.22L138.99 140.98L138.8 141.74L138.04 141.93L137.28 141.74L137.09 140.98L137.28 140.22Z" fill="white"/>
+</svg>
