@@ -1505,6 +1505,9 @@ export class GameScene extends Phaser.Scene {
     // Destroy the bullet
     bullet.destroy();
 
+    // Play guard shot sound
+    this.sound.play("guard-shot", { volume: 0.3 });
+
     // Find the guard ID from the sprite
     const guardId = guardSprite.getData("guardId");
 
