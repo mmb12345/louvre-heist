@@ -84,6 +84,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   async create() {
+    // Start game scene background music
+    this.sound.play("game-scene-bgm", { loop: true, volume: 0.05 });
+
     // Prevent game from pausing when window loses focus
     this.game.events.off("blur");
     this.game.events.off("focus");
@@ -1954,5 +1957,10 @@ export class GameScene extends Phaser.Scene {
 
     // Update player velocity (physics handles collision)
     this.player.setVelocity(velocityX * 60, velocityY * 60);
+  }
+
+  shutdown() {
+    // Stop game scene background music when scene ends
+    this.sound.stopByKey('game-scene-bgm');
   }
 }

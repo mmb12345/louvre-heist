@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 // Set to true to skip player selection and use a random color
-const SKIP_PLAYER_SELECT = false;
+const SKIP_PLAYER_SELECT = true;
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -40,6 +40,7 @@ export class BootScene extends Phaser.Scene {
 
     // Load background music
     this.load.audio("boot-scene-bgm", "/assets/boot-scene-bgm.mp3");
+    this.load.audio("game-scene-bgm", "/assets/game-scene-bgm.mp3");
 
     // Load room items
     this.load.image("controlRoomComputer", "/assets/controlRoomComputer.svg");
