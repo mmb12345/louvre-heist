@@ -13,8 +13,7 @@
       "Bash(kill:*)",
       "Bash(npm run dev:server:*)",
       "Bash(git stash:*)",
-      "Bash(npm run build:client:*)",
-      "Bash(cat:*)"
+      "Bash(npm run build:client:*)"
     ],
     "deny": [],
     "ask": []

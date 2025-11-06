@@ -644,46 +644,7 @@ export class GameRoom extends Room<GameState> {
         guard.y += (dy / distance) * guard.speed;
       }
 
-      // Find closest player for shooting
-      let closestPlayer: Player | null = null;
-      let closestDistance = Infinity;
-
-      this.state.players.forEach((player) => {
-        if (player.caught) return;
-
-        const distToPlayer = Math.sqrt(
-          Math.pow(guard.x - player.x, 2) + Math.pow(guard.y - player.y, 2)
-        );
-
-        if (distToPlayer < closestDistance) {
-          closestPlayer = player;
-          closestDistance = distToPlayer;
-        }
-      });
-
-      // Guard shooting logic
-      if (closestPlayer && closestDistance <= GAME_CONFIG.GUARD_SHOOT_RANGE) {
-        const currentTime = Date.now();
-        const timeSinceLastShot = currentTime - guard.lastShootTime;
-
-        // Check cooldown and random chance
-        if (timeSinceLastShot >= GAME_CONFIG.GUARD_SHOOT_COOLDOWN &&
-            Math.random() < GAME_CONFIG.GUARD_SHOOT_CHANCE) {
-          guard.lastShootTime = currentTime;
-
-          const targetPlayer: Player = closestPlayer;
-          // Broadcast shoot event to all clients
-          this.broadcast('guard_shoot', {
-            guardId: guard.id,
-            guardX: guard.x,
-            guardY: guard.y,
-            targetX: targetPlayer.x,
-            targetY: targetPlayer.y,
-          });
-        }
-      }
-
-      // Check if guard caught any player (melee range)
+      // Check if guard caught any player
       this.state.players.forEach((player) => {
         if (player.caught) return;
 

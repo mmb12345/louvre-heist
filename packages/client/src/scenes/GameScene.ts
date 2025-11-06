@@ -79,9 +79,6 @@ export class GameScene extends Phaser.Scene {
   private consoleHistory: string[] = [];
   private consoleHistoryIndex: number = -1;
 
-  // Game Over
-  private isGameOver: boolean = false;
-
   constructor() {
     super({ key: "GameScene" });
   }
@@ -125,11 +122,8 @@ export class GameScene extends Phaser.Scene {
     this.player.setDepth(10);
 
     // Set smaller collision body for smoother movement
-    const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
-    if (playerBody) {
-      playerBody.setSize(24, 24);
-      playerBody.setOffset(4, 4);
-    }
+    this.player.body.setSize(24, 24);
+    this.player.body.setOffset(4, 4);
 
     // Add collision
     this.physics.add.collider(this.player, this.walls);
@@ -168,7 +162,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.overlap(
       this.bullets,
       this.guardsGroup,
-      this.bulletHitGuard as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+      this.bulletHitGuard,
       undefined,
       this
     );
@@ -852,51 +846,6 @@ export class GameScene extends Phaser.Scene {
           this.showPasswordUI(data.password);
         }
       );
-
-      // Listen for guard shooting event
-      room.onMessage(
-        "guard_shoot",
-        (data: {
-          guardId: string;
-          guardX: number;
-          guardY: number;
-          targetX: number;
-          targetY: number;
-        }) => {
-          this.spawnGuardBullet(
-            data.guardX,
-            data.guardY,
-            data.targetX,
-            data.targetY
-          );
-        }
-      );
-      // Listen for exit unlocked event
-      room.onMessage(
-        "exit_unlocked",
-        (data: { playerId: string; playerName: string }) => {
-          console.log(`${data.playerName} unlocked the exit door!`);
-          if (room.state.exitDoor) {
-            this.renderExitDoor(room.state.exitDoor);
-          }
-        }
-      );
-
-      // Render exit door initially
-      this.time.delayedCall(1000, () => {
-        if (room.state.exitDoor) {
-          console.log("Exit door detected in room state!", room.state.exitDoor);
-          this.renderExitDoor(room.state.exitDoor);
-
-          // Listen for exit door property changes
-          room.state.exitDoor.onChange(() => {
-            console.log("Exit door changed!", room.state.exitDoor);
-            if (room.state.exitDoor) {
-              this.renderExitDoor(room.state.exitDoor);
-            }
-          });
-        }
-      });
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
     }
@@ -1430,115 +1379,6 @@ export class GameScene extends Phaser.Scene {
     this.passwordUIIndicator.setVisible(true);
   }
 
-  private showGameOverScreen() {
-    if (this.isGameOver) return; // Already showing game over
-    this.isGameOver = true;
-
-    // Stop player movement
-    if (this.player.body && "velocity" in this.player.body) {
-      this.player.body.velocity.set(0, 0);
-    }
-
-    // Count alive players
-    let alivePlayers = 0;
-    let totalPlayers = 0;
-    if (this.room && this.room.state && this.room.state.players) {
-      this.room.state.players.forEach((player) => {
-        totalPlayers++;
-        if (!player.caught) {
-          alivePlayers++;
-        }
-      });
-    }
-
-    // Create container for game over screen
-    const gameOverContainer = this.add.container(0, 0);
-    gameOverContainer.setScrollFactor(0);
-    gameOverContainer.setDepth(2000);
-
-    // Semi-transparent black overlay
-    const overlay = this.add.graphics();
-    overlay.fillStyle(0x000000, 0.8);
-    overlay.fillRect(0, 0, this.cameras.main.width, this.cameras.main.height);
-    gameOverContainer.add(overlay);
-
-    // Game Over text
-    const gameOverText = this.add.text(
-      this.cameras.main.centerX,
-      this.cameras.main.centerY - 80,
-      "GAME OVER",
-      {
-        fontSize: "64px",
-        color: "#ff0000",
-        fontStyle: "bold",
-      }
-    );
-    gameOverText.setOrigin(0.5);
-    gameOverContainer.add(gameOverText);
-
-    // Shot message
-    const shotText = this.add.text(
-      this.cameras.main.centerX,
-      this.cameras.main.centerY - 10,
-      "You were shot by a guard!",
-      {
-        fontSize: "24px",
-        color: "#ffffff",
-      }
-    );
-    shotText.setOrigin(0.5);
-    gameOverContainer.add(shotText);
-
-    // Players alive count
-    const playersAliveText = this.add.text(
-      this.cameras.main.centerX,
-      this.cameras.main.centerY + 30,
-      `Players alive: ${alivePlayers}/${totalPlayers}`,
-      {
-        fontSize: "28px",
-        color: alivePlayers > 0 ? "#00ff00" : "#ff0000",
-        fontStyle: "bold",
-      }
-    );
-    playersAliveText.setOrigin(0.5);
-    gameOverContainer.add(playersAliveText);
-
-    // Restart instructions
-    const restartText = this.add.text(
-      this.cameras.main.centerX,
-      this.cameras.main.centerY + 90,
-      "Press SPACE to restart",
-      {
-        fontSize: "20px",
-        color: "#ffff00",
-      }
-    );
-    restartText.setOrigin(0.5);
-    gameOverContainer.add(restartText);
-
-    // Add blinking effect to restart text
-    this.tweens.add({
-      targets: restartText,
-      alpha: 0.3,
-      duration: 800,
-      yoyo: true,
-      repeat: -1,
-    });
-  }
-
-  private restartGame() {
-    // Reset game over flag
-    this.isGameOver = false;
-
-    // Disconnect from current room
-    if (this.colyseusClient) {
-      this.colyseusClient.leave();
-    }
-
-    // Restart the scene
-    this.scene.restart();
-  }
-
   private updatePlayerTarget(sessionId: string, player: Player) {
     // Update the target position for lerping
     this.playerTargets.set(sessionId, {
@@ -1972,67 +1812,6 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private spawnGuardBullet(
-    guardX: number,
-    guardY: number,
-    targetX: number,
-    targetY: number
-  ) {
-    // Convert tile coordinates to pixel coordinates
-    const startX = guardX * GAME_CONFIG.TILE_SIZE;
-    const startY = guardY * GAME_CONFIG.TILE_SIZE;
-    const endX = targetX * GAME_CONFIG.TILE_SIZE;
-    const endY = targetY * GAME_CONFIG.TILE_SIZE;
-
-    // Calculate direction from guard to target
-    const dx = endX - startX;
-    const dy = endY - startY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance === 0) return; // Guard and target at same position, don't shoot
-
-    // Create bullet sprite
-    const bullet = this.physics.add.sprite(startX, startY, "bullet");
-    bullet.setDepth(15);
-    bullet.setScale(1.5);
-    bullet.setTint(0xff0000); // Red color for guard bullets
-
-    // Set up physics body
-    const body = bullet.body as Phaser.Physics.Arcade.Body;
-    if (body) {
-      body.setCircle(20);
-      body.setAllowGravity(false);
-      body.setDrag(0);
-    }
-
-    // Calculate velocity
-    const bulletSpeed = 800; // Slightly slower than player bullets
-    const velocityX = (dx / distance) * bulletSpeed;
-    const velocityY = (dy / distance) * bulletSpeed;
-
-    body.setVelocity(velocityX, velocityY);
-
-    // Add collision with player
-    this.physics.add.overlap(
-      bullet,
-      this.player,
-      () => {
-        bullet.destroy();
-        // Trigger game over when hit
-        this.showGameOverScreen();
-      },
-      undefined,
-      this
-    );
-
-    // Auto-destroy bullet after 5 seconds
-    this.time.delayedCall(5000, () => {
-      if (bullet && bullet.active) {
-        bullet.destroy();
-      }
-    });
-  }
-
   update(time: number, delta: number) {
     if (!this.player) return;
 
@@ -2051,11 +1830,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Handle shooting
-    if (
-      Phaser.Input.Keyboard.JustDown(this.spaceKey) &&
-      !this.consoleVisible &&
-      !this.isGameOver
-    ) {
+    if (Phaser.Input.Keyboard.JustDown(this.spaceKey) && !this.consoleVisible) {
       this.shoot();
     }
 
@@ -2079,8 +1854,8 @@ export class GameScene extends Phaser.Scene {
     let velocityX = 0;
     let velocityY = 0;
 
-    // Skip player input if console is visible or game is over
-    if (!this.consoleVisible && !this.isGameOver) {
+    // Skip player input if console is visible
+    if (!this.consoleVisible) {
       // Determine velocity from key presses
       if (this.wasdKeys.A.isDown) {
         velocityX = -GAME_CONFIG.PLAYER_SPEED;
