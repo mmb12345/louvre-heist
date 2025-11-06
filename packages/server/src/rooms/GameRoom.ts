@@ -1,5 +1,5 @@
 import { Room, Client } from '@colyseus/core';
-import { GameState, Player, Guard, Objective, Room as RoomSchema, Crown, PostIt } from '@louvre-heist/shared';
+import { GameState, Player, Guard, Objective, Room as RoomSchema, Crown, PostIt, ExitDoor } from '@louvre-heist/shared';
 import {
   GAME_CONFIG,
   OBJECTIVES,
@@ -23,6 +23,7 @@ export class GameRoom extends Room<GameState> {
     this.initializeGuards();
     this.initializeCrown();
     this.initializePostIt();
+    this.initializeExitDoor();
 
     // Start guard movement immediately
     this.guardUpdateInterval = setInterval(() => {
@@ -122,6 +123,9 @@ export class GameRoom extends Room<GameState> {
 
       // Check for post-it pickup
       this.checkPostItPickup(player);
+
+      // Check for security room interaction (to unlock exit)
+      this.checkSecurityRoomInteraction(player);
     });
 
     this.onMessage('interact', (client) => {
@@ -528,6 +532,39 @@ export class GameRoom extends Room<GameState> {
     console.log(`Post-it spawned at (${postit.x.toFixed(2)}, ${postit.y.toFixed(2)}) in guard room (${randomGuardRoom.gridX}, ${randomGuardRoom.gridY})`);
   }
 
+  private initializeExitDoor() {
+    // Place exit door on a random outside wall
+    const exitDoor = new ExitDoor();
+
+    // Choose a random wall: 0=top, 1=right, 2=bottom, 3=left
+    const wall = Math.floor(Math.random() * 4);
+    const mapSize = GAME_CONFIG.MAP_WIDTH;
+
+    switch (wall) {
+      case 0: // Top wall
+        exitDoor.x = Math.floor(Math.random() * mapSize);
+        exitDoor.y = 0;
+        break;
+      case 1: // Right wall
+        exitDoor.x = mapSize - 1;
+        exitDoor.y = Math.floor(Math.random() * mapSize);
+        break;
+      case 2: // Bottom wall
+        exitDoor.x = Math.floor(Math.random() * mapSize);
+        exitDoor.y = mapSize - 1;
+        break;
+      case 3: // Left wall
+        exitDoor.x = 0;
+        exitDoor.y = Math.floor(Math.random() * mapSize);
+        break;
+    }
+
+    exitDoor.unlocked = false;
+    this.state.exitDoor = exitDoor;
+
+    console.log(`Exit door spawned at (${exitDoor.x}, ${exitDoor.y})`);
+  }
+
   onJoin(client: Client, options: any) {
     console.log(`${client.sessionId} joined`);
 
@@ -693,8 +730,8 @@ export class GameRoom extends Room<GameState> {
       Math.pow(player.y - this.state.crown.y, 2)
     );
 
-    // If player is close enough to crown (within 1 tile), pick it up
-    if (distance < 1) {
+    // If player is close enough to crown (within 5 tiles), pick it up
+    if (distance < 5) {
       this.state.crown.pickedUp = true;
       this.state.crown.ownerId = player.id;
 
@@ -713,8 +750,8 @@ export class GameRoom extends Room<GameState> {
       Math.pow(player.y - this.state.postit.y, 2)
     );
 
-    // If player is close enough to post-it (within 3 tiles), pick it up
-    if (distance < 3) {
+    // If player is close enough to post-it (within 5 tiles), pick it up
+    if (distance < 5) {
       this.state.postit.pickedUp = true;
 
       console.log(`Player ${player.name} picked up the post-it with password!`);
@@ -723,6 +760,43 @@ export class GameRoom extends Room<GameState> {
         playerId: player.id,
         playerName: player.name,
         password: this.state.postit.password
+      });
+    }
+  }
+
+  private checkSecurityRoomInteraction(player: Player) {
+    // Check if password has been picked up
+    if (!this.state.postit || !this.state.postit.pickedUp) return;
+
+    // Check if exit door already unlocked
+    if (!this.state.exitDoor || this.state.exitDoor.unlocked) return;
+
+    // Find the security room
+    const securityRoom = Array.from(this.state.rooms.values()).find(
+      room => room.roomType === ROOM_TYPES.SECURITY_ROOM
+    );
+
+    if (!securityRoom) return;
+
+    // Calculate the center of the security room (where the control room computer is)
+    const roomCenterX = securityRoom.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+    const roomCenterY = securityRoom.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+
+    // Check distance to control room computer
+    const distance = Math.sqrt(
+      Math.pow(player.x - roomCenterX, 2) +
+      Math.pow(player.y - roomCenterY, 2)
+    );
+
+    // If player is close enough to the computer (within 5 tiles), unlock the exit
+    if (distance < 5) {
+      this.state.exitDoor.unlocked = true;
+
+      console.log(`Player ${player.name} unlocked the exit door!`);
+      // Broadcast to all players that the exit is unlocked
+      this.broadcast('exit_unlocked', {
+        playerId: player.id,
+        playerName: player.name
       });
     }
   }

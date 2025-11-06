@@ -50,6 +50,12 @@ export class PostIt extends Schema {
   @type('string') password: string = 'Louvre'; // The password text
 }
 
+export class ExitDoor extends Schema {
+  @type('number') x!: number; // Tile position
+  @type('number') y!: number; // Tile position
+  @type('boolean') unlocked: boolean = false;
+}
+
 export class GameState extends Schema {
   @type({ map: Player }) players = new MapSchema<Player>();
   @type({ map: Guard }) guards = new MapSchema<Guard>();
@@ -57,6 +63,7 @@ export class GameState extends Schema {
   @type({ map: Room }) rooms = new MapSchema<Room>();
   @type(Crown) crown?: Crown;
   @type(PostIt) postit?: PostIt;
+  @type(ExitDoor) exitDoor?: ExitDoor;
   @type('number') timeRemaining!: number;
   @type('boolean') gameStarted: boolean = false;
   @type('boolean') gameOver: boolean = false;
