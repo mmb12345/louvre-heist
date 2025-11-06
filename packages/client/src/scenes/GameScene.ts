@@ -1,7 +1,14 @@
 import Phaser from "phaser";
 import { GAME_CONFIG, ROOM_TYPES } from "@louvre-heist/shared";
 import { ColyseusClient } from "../network/ColyseusClient";
-import type { Player, Room, Guard, Crown, PostIt, ExitDoor } from "@louvre-heist/shared";
+import type {
+  Player,
+  Room,
+  Guard,
+  Crown,
+  PostIt,
+  ExitDoor,
+} from "@louvre-heist/shared";
 import { generatePlayerName } from "../utils/nameGenerator";
 
 export class GameScene extends Phaser.Scene {
