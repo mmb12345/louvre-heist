@@ -108,21 +108,44 @@ export class GameScene extends Phaser.Scene {
     let velocityX = 0;
     let velocityY = 0;
 
-    // Check WASD keys and rotate sprite based on direction
+    // Determine velocity from key presses
     if (this.wasdKeys.A.isDown) {
       velocityX = -GAME_CONFIG.PLAYER_SPEED;
-      this.player.setAngle(90); // Face left
     } else if (this.wasdKeys.D.isDown) {
       velocityX = GAME_CONFIG.PLAYER_SPEED;
-      this.player.setAngle(270); // Face right
     }
 
     if (this.wasdKeys.W.isDown) {
       velocityY = -GAME_CONFIG.PLAYER_SPEED;
-      this.player.setAngle(180); // Face up
     } else if (this.wasdKeys.S.isDown) {
       velocityY = GAME_CONFIG.PLAYER_SPEED;
-      this.player.setAngle(0); // Face down
+    }
+
+    // Set rotation based on direction (check diagonals first)
+    if (velocityY < 0 && velocityX > 0) {
+      // Up-right (W+D)
+      this.player.setAngle(225);
+    } else if (velocityY < 0 && velocityX < 0) {
+      // Up-left (W+A)
+      this.player.setAngle(135);
+    } else if (velocityY > 0 && velocityX > 0) {
+      // Down-right (S+D)
+      this.player.setAngle(315);
+    } else if (velocityY > 0 && velocityX < 0) {
+      // Down-left (S+A)
+      this.player.setAngle(45);
+    } else if (velocityY < 0) {
+      // Up (W)
+      this.player.setAngle(180);
+    } else if (velocityY > 0) {
+      // Down (S)
+      this.player.setAngle(0);
+    } else if (velocityX < 0) {
+      // Left (A)
+      this.player.setAngle(90);
+    } else if (velocityX > 0) {
+      // Right (D)
+      this.player.setAngle(270);
     }
 
     // Handle walking animation
