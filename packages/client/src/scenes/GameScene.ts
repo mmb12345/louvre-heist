@@ -505,6 +505,7 @@ export class GameScene extends Phaser.Scene {
       this.addConsoleOutput("  godmode - Enable god mode (can't be caught)");
       this.addConsoleOutput("  objective [type] - List or complete objectives");
       this.addConsoleOutput("  time [seconds] - Get or set remaining time");
+      this.addConsoleOutput("  reset - Regenerate map and reset positions");
     } else if (cmd === "clear") {
       this.consoleOutput.setText("");
     } else {

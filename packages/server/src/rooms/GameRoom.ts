@@ -246,6 +246,25 @@ export class GameRoom extends Room<GameState> {
         }
         break;
 
+      case 'reset':
+        // Clear existing rooms
+        this.state.rooms.clear();
+
+        // Regenerate map
+        this.generateMap();
+
+        // Reset all player positions to spawn
+        const centerX = GAME_CONFIG.MAP_WIDTH / 2;
+        const centerY = GAME_CONFIG.MAP_HEIGHT / 2;
+        this.state.players.forEach(p => {
+          p.x = centerX;
+          p.y = centerY;
+        });
+
+        sendResponse('Map regenerated and player positions reset');
+        this.broadcast('console_response', { output: 'Map has been regenerated!' });
+        break;
+
       default:
         sendResponse(`Unknown command: ${command}`);
         sendResponse('Try "help" in the client console for available commands');
