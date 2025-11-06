@@ -29,7 +29,8 @@ export class GameScene extends Phaser.Scene {
     { x: number; y: number; angle: number; isMoving: boolean }
   > = new Map();
   private lastUpdateTime: number = 0;
-  private updateThrottle: number = 50; // Send updates every 50ms (20 times per second)
+  private updateThrottle: number = 100; // Send updates every 100ms (10 times per second)
+  private lastSentPosition: { x: number; y: number; angle: number } = { x: 0, y: 0, angle: 0 };
 
   // Minimap
   private minimapContainer!: Phaser.GameObjects.Container;
@@ -663,6 +664,11 @@ export class GameScene extends Phaser.Scene {
         this.placeRoomItem(room, key);
       });
 
+      // Delay network updates to let initial state settle
+      this.time.delayedCall(500, () => {
+        this.lastUpdateTime = this.time.now;
+      });
+
       // Listen for room removal (e.g., on reset)
       room.state.rooms.onRemove((room: Room, key: string) => {
         this.rooms.delete(key);
@@ -792,7 +798,7 @@ export class GameScene extends Phaser.Scene {
       if (!target) return;
 
       const color = sprite.getData("color");
-      const lerpFactor = 0.2; // Interpolation speed (0.2 = 20% per frame)
+      const lerpFactor = 0.3; // Interpolation speed (0.3 = 30% per frame, more responsive)
 
       // Lerp position
       const currentX = sprite.x;
@@ -1182,19 +1188,23 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
-      // Send position to server (throttled)
+      // Send position to server (throttled and only if changed)
       if (this.colyseusClient && this.colyseusClient.room) {
         if (time - this.lastUpdateTime > this.updateThrottle) {
           // Convert pixel position to tile position for server
           const tileX = this.player.x / GAME_CONFIG.TILE_SIZE;
           const tileY = this.player.y / GAME_CONFIG.TILE_SIZE;
-          this.colyseusClient.sendMove(
-            tileX,
-            tileY,
-            this.currentAngle,
-            isMoving
-          );
-          this.lastUpdateTime = time;
+
+          // Only send if position or angle has changed significantly
+          const posChanged = Math.abs(tileX - this.lastSentPosition.x) > 0.1 ||
+                            Math.abs(tileY - this.lastSentPosition.y) > 0.1;
+          const angleChanged = Math.abs(this.currentAngle - this.lastSentPosition.angle) > 1;
+
+          if (posChanged || angleChanged || isMoving !== this.player.anims?.isPlaying) {
+            this.colyseusClient.sendMove(tileX, tileY, this.currentAngle, isMoving);
+            this.lastSentPosition = { x: tileX, y: tileY, angle: this.currentAngle };
+            this.lastUpdateTime = time;
+          }
         }
       }
     }
