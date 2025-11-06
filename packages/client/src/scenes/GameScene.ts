@@ -957,7 +957,7 @@ export class GameScene extends Phaser.Scene {
 
     // Calculate bullet velocity based on current angle
     // Note: In Phaser, angle 0 is facing down, and increases clockwise
-    const bulletSpeed = 500;
+    const bulletSpeed = 800;
     const velocityX = -Math.sin(angleInRadians) * bulletSpeed; // Negated for correct X direction
     const velocityY = Math.cos(angleInRadians) * bulletSpeed;
 
