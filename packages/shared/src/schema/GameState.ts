@@ -19,6 +19,7 @@ export class Guard extends Schema {
   @type('number') patrolPattern!: number; // 0-3 for different patterns
   @type('number') patrolIndex: number = 0;
   @type('number') speed: number = 1.5; // Movement speed (randomized on spawn)
+  @type('number') lastShootTime: number = 0; // Timestamp of last shot for cooldown tracking
 }
 
 export class Objective extends Schema {
