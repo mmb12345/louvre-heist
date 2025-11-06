@@ -6,6 +6,10 @@ export const GAME_CONFIG = {
   MAP_WIDTH: 400, // 10 rooms * 40 tiles = 400 tiles
   MAP_HEIGHT: 400,
   PLAYER_SPEED: 7.5, // Movement speed in pixels per frame
+  MAX_PLAYERS: 3, // Maximum number of players
+  GAME_DURATION: 300, // Game duration in seconds (5 minutes)
+  GUARD_SPEED: 1.5, // Guard movement speed
+  GUARD_CATCH_RANGE: 1, // Distance at which guard catches player
 };
 
 export const OBJECTIVES = {
