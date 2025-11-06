@@ -22,8 +22,19 @@ export class GameScene extends Phaser.Scene {
     const startX = (GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE) / 2;
     const startY = (GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE) / 2;
 
-    this.player = this.add.sprite(startX, startY, 'player');
+    this.player = this.add.sprite(startX, startY, 'playerStill');
     this.player.setDepth(10);
+
+    // Create walking animation
+    this.anims.create({
+      key: 'walk',
+      frames: [
+        { key: 'playerWalk1' },
+        { key: 'playerWalk2' },
+      ],
+      frameRate: 8, // 8 frames per second
+      repeat: -1, // Loop indefinitely
+    });
 
     // Setup WASD controls
     this.wasdKeys = this.input.keyboard!.addKeys({
@@ -112,6 +123,20 @@ export class GameScene extends Phaser.Scene {
     } else if (this.wasdKeys.S.isDown) {
       velocityY = GAME_CONFIG.PLAYER_SPEED;
       this.player.setAngle(0); // Face down
+    }
+
+    // Handle walking animation
+    const isMoving = velocityX !== 0 || velocityY !== 0;
+
+    if (isMoving) {
+      // Play walk animation if not already playing
+      if (this.player.anims.currentAnim?.key !== 'walk') {
+        this.player.play('walk');
+      }
+    } else {
+      // Stop animation and show still sprite
+      this.player.stop();
+      this.player.setTexture('playerStill');
     }
 
     // Update player position with boundary checking

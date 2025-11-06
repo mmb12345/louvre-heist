@@ -6,8 +6,10 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load custom player sprite
-    this.load.image('player', '/assets/pinkStill.svg');
+    // Load custom player sprites
+    this.load.image('playerStill', '/assets/pinkStill.svg');
+    this.load.image('playerWalk1', '/assets/pinkWalk1.svg');
+    this.load.image('playerWalk2', '/assets/pinkWalk2.svg');
 
     // Create tile texture
     this.createTileTexture();
