@@ -34,11 +34,19 @@ export class Room extends Schema {
   @type('string') roomType!: string; // 'guard_room', 'security_room', etc.
 }
 
+export class Crown extends Schema {
+  @type('number') x!: number; // Tile position
+  @type('number') y!: number; // Tile position
+  @type('boolean') pickedUp: boolean = false;
+  @type('string') ownerId: string = ''; // Player ID who has the crown
+}
+
 export class GameState extends Schema {
   @type({ map: Player }) players = new MapSchema<Player>();
   @type({ map: Guard }) guards = new MapSchema<Guard>();
   @type({ map: Objective }) objectives = new MapSchema<Objective>();
   @type({ map: Room }) rooms = new MapSchema<Room>();
+  @type(Crown) crown?: Crown;
   @type('number') timeRemaining!: number;
   @type('boolean') gameStarted: boolean = false;
   @type('boolean') gameOver: boolean = false;

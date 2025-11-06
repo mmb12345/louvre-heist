@@ -1,5 +1,5 @@
 import { Room, Client } from '@colyseus/core';
-import { GameState, Player, Guard, Objective, Room as RoomSchema } from '@louvre-heist/shared';
+import { GameState, Player, Guard, Objective, Room as RoomSchema, Crown } from '@louvre-heist/shared';
 import {
   GAME_CONFIG,
   OBJECTIVES,
@@ -21,6 +21,7 @@ export class GameRoom extends Room<GameState> {
     this.setupMessageHandlers();
     this.initializeObjectives();
     this.initializeGuards();
+    this.initializeCrown();
   }
 
   private generateMap() {
@@ -109,6 +110,9 @@ export class GameRoom extends Room<GameState> {
 
       // Check for objective interactions
       this.checkObjectiveInteraction(player);
+
+      // Check for crown pickup
+      this.checkCrownPickup(player);
     });
 
     this.onMessage('interact', (client) => {
@@ -354,6 +358,37 @@ export class GameRoom extends Room<GameState> {
     }
   }
 
+  private initializeCrown() {
+    // Find the crown room
+    const crownRoom = Array.from(this.state.rooms.values()).find(
+      room => room.roomType === ROOM_TYPES.CROWN_ROOM
+    );
+
+    if (!crownRoom) {
+      console.error('Crown room not found!');
+      return;
+    }
+
+    // Calculate random position within the crown room
+    // Room is ROOM_SIZE x ROOM_SIZE tiles, place crown randomly within it
+    const roomCenterX = crownRoom.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+    const roomCenterY = crownRoom.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+
+    // Add some randomness within the room (±2 tiles from center)
+    const randomOffsetX = (Math.random() - 0.5) * 4;
+    const randomOffsetY = (Math.random() - 0.5) * 4;
+
+    const crown = new Crown();
+    crown.x = roomCenterX + randomOffsetX;
+    crown.y = roomCenterY + randomOffsetY;
+    crown.pickedUp = false;
+    crown.ownerId = '';
+
+    this.state.crown = crown;
+
+    console.log(`Crown spawned at (${crown.x.toFixed(2)}, ${crown.y.toFixed(2)}) in room (${crownRoom.gridX}, ${crownRoom.gridY})`);
+  }
+
   onJoin(client: Client, options: any) {
     console.log(`${client.sessionId} joined`);
 
@@ -452,6 +487,26 @@ export class GameRoom extends Room<GameState> {
         // Player is near, they can interact
       }
     });
+  }
+
+  private checkCrownPickup(player: Player) {
+    // Check if crown exists and hasn't been picked up
+    if (!this.state.crown || this.state.crown.pickedUp) return;
+
+    // Check distance to crown
+    const distance = Math.sqrt(
+      Math.pow(player.x - this.state.crown.x, 2) +
+      Math.pow(player.y - this.state.crown.y, 2)
+    );
+
+    // If player is close enough to crown (within 1 tile), pick it up
+    if (distance < 1) {
+      this.state.crown.pickedUp = true;
+      this.state.crown.ownerId = player.id;
+
+      console.log(`Player ${player.name} picked up the crown!`);
+      this.broadcast('crown_picked_up', { playerId: player.id, playerName: player.name });
+    }
   }
 
   private checkAllObjectivesComplete(): boolean {
