@@ -30,11 +30,16 @@ export class GameScene extends Phaser.Scene {
   > = new Map();
   private lastUpdateTime: number = 0;
   private updateThrottle: number = 100; // Send updates every 100ms (10 times per second)
-  private lastSentPosition: { x: number; y: number; angle: number } = { x: 0, y: 0, angle: 0 };
+  private lastSentPosition: { x: number; y: number; angle: number } = {
+    x: 0,
+    y: 0,
+    angle: 0,
+  };
 
   // Guards
   private guards: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
   private guardTargets: Map<string, { x: number; y: number }> = new Map();
+  private guardLastServerPos: Map<string, { x: number; y: number }> = new Map(); // Track last known server position
 
   // Minimap
   private minimapContainer!: Phaser.GameObjects.Container;
@@ -741,26 +746,29 @@ export class GameScene extends Phaser.Scene {
       // Use a delayed check to wait for crown to be initialized
       this.time.delayedCall(1000, () => {
         if (room.state.crown) {
-          console.log('Crown detected in room state!', room.state.crown);
+          console.log("Crown detected in room state!", room.state.crown);
           this.renderCrown(room.state.crown);
 
           // Listen for crown property changes
           room.state.crown.onChange(() => {
-            console.log('Crown changed!', room.state.crown);
+            console.log("Crown changed!", room.state.crown);
             if (room.state.crown) {
               this.renderCrown(room.state.crown);
             }
           });
         } else {
-          console.log('No crown in room state yet');
+          console.log("No crown in room state yet");
         }
       });
 
       // Listen for crown picked up event
-      room.onMessage('crown_picked_up', (data: { playerId: string; playerName: string }) => {
-        console.log(`${data.playerName} picked up the crown!`);
-        this.showCrownPickupMessage(data.playerName);
-      });
+      room.onMessage(
+        "crown_picked_up",
+        (data: { playerId: string; playerName: string }) => {
+          console.log(`${data.playerName} picked up the crown!`);
+          this.showCrownPickupMessage(data.playerName);
+        }
+      );
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
     }
@@ -829,7 +837,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private addGuard(guardId: string, guard: Guard) {
-    console.log(`Creating guard sprite for ${guardId} at pixel position (${guard.x * GAME_CONFIG.TILE_SIZE}, ${guard.y * GAME_CONFIG.TILE_SIZE})`);
+    console.log(
+      `Creating guard sprite for ${guardId} at pixel position (${
+        guard.x * GAME_CONFIG.TILE_SIZE
+      }, ${guard.y * GAME_CONFIG.TILE_SIZE})`
+    );
 
     // Create sprite for guard at their position
     const sprite = this.physics.add.sprite(
@@ -859,7 +871,9 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(sprite, this.player);
 
     this.guards.set(guardId, sprite);
-    console.log(`Guard ${guardId} sprite created successfully. Total guards: ${this.guards.size}`);
+    console.log(
+      `Guard ${guardId} sprite created successfully. Total guards: ${this.guards.size}`
+    );
 
     // Initialize target position for lerping
     this.guardTargets.set(guardId, {
@@ -953,7 +967,7 @@ export class GameScene extends Phaser.Scene {
         this.crownSprite = this.add.sprite(
           crown.x * GAME_CONFIG.TILE_SIZE,
           crown.y * GAME_CONFIG.TILE_SIZE,
-          'crown'
+          "crown"
         );
         this.crownSprite.setDepth(5); // Below player but above floor
         this.crownSprite.setScale(0.8); // Scale down a bit
@@ -988,23 +1002,20 @@ export class GameScene extends Phaser.Scene {
       this.crownUIIndicator.add(bg);
 
       // Crown icon (smaller)
-      const crownIcon = this.add.sprite(-30, 0, 'crown');
+      const crownIcon = this.add.sprite(-30, 0, "crown");
       crownIcon.setScale(0.3);
       this.crownUIIndicator.add(crownIcon);
 
       // Text
-      const crownText = this.add.text(0, 0, 'Crown', {
-        fontSize: '16px',
-        color: '#FFD700'
+      const crownText = this.add.text(0, 0, "Crown", {
+        fontSize: "16px",
+        color: "#FFD700",
       });
       crownText.setOrigin(0, 0.5);
       this.crownUIIndicator.add(crownText);
 
       // Position in bottom left
-      this.crownUIIndicator.setPosition(
-        80,
-        this.cameras.main.height - 30
-      );
+      this.crownUIIndicator.setPosition(80, this.cameras.main.height - 30);
     }
 
     // Show/hide based on whether someone has the crown
@@ -1012,18 +1023,22 @@ export class GameScene extends Phaser.Scene {
       this.crownUIIndicator.setVisible(true);
 
       // Update the text to show who has it
-      const crownText = this.crownUIIndicator.getAt(2) as Phaser.GameObjects.Text;
+      const crownText = this.crownUIIndicator.getAt(
+        2
+      ) as Phaser.GameObjects.Text;
       if (localPlayerHasCrown) {
-        crownText.setText('You have\nthe crown!');
-        crownText.setColor('#FFD700');
+        crownText.setText("You have\nthe crown!");
+        crownText.setColor("#FFD700");
       } else {
         // Find the player name
         const ownerPlayer = this.otherPlayers.get(ownerId);
         if (ownerPlayer) {
-          const nameText = ownerPlayer.getData('nameText') as Phaser.GameObjects.Text;
-          const playerName = nameText?.text || 'Player';
+          const nameText = ownerPlayer.getData(
+            "nameText"
+          ) as Phaser.GameObjects.Text;
+          const playerName = nameText?.text || "Player";
           crownText.setText(`${playerName}\nhas crown`);
-          crownText.setColor('#FFFFFF');
+          crownText.setColor("#FFFFFF");
         }
       }
     } else {
@@ -1038,10 +1053,10 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.centerY - 100,
       `${playerName} picked up the crown!`,
       {
-        fontSize: '24px',
-        color: '#FFD700',
-        backgroundColor: '#000000cc',
-        padding: { x: 20, y: 10 }
+        fontSize: "24px",
+        color: "#FFD700",
+        backgroundColor: "#000000cc",
+        padding: { x: 20, y: 10 },
       }
     );
     message.setOrigin(0.5);
@@ -1056,7 +1071,7 @@ export class GameScene extends Phaser.Scene {
       delay: 2000,
       onComplete: () => {
         message.destroy();
-      }
+      },
     });
   }
 
@@ -1128,16 +1143,40 @@ export class GameScene extends Phaser.Scene {
   }
 
   private lerpGuards() {
+    if (!this.colyseusClient || !this.colyseusClient.room) return;
+
     // Interpolate positions of all guards for smooth movement
     this.guards.forEach((sprite, guardId) => {
+      // Get current server position for this guard
+      const guard = this.colyseusClient.room!.state.guards.get(guardId);
+      if (!guard) return;
+
+      // Convert server position (tile coordinates) to pixel coordinates
+      const serverX = guard.x * GAME_CONFIG.TILE_SIZE;
+      const serverY = guard.y * GAME_CONFIG.TILE_SIZE;
+
+      // Get last known server position
+      const lastServerPos = this.guardLastServerPos.get(guardId);
+
+      // Check if server position has changed
+      if (
+        !lastServerPos ||
+        lastServerPos.x !== serverX ||
+        lastServerPos.y !== serverY
+      ) {
+        // Server position changed - update target and last position
+        this.guardTargets.set(guardId, { x: serverX, y: serverY });
+        this.guardLastServerPos.set(guardId, { x: serverX, y: serverY });
+      }
+
+      // Get target position for lerping
       const target = this.guardTargets.get(guardId);
       if (!target) return;
 
       // Use a higher lerp factor for smoother, faster interpolation
-      // This makes guards respond more quickly to server updates
-      const lerpFactor = 0.4; // Increased from 0.3 for smoother movement
+      const lerpFactor = 0.05;
 
-      // Lerp position
+      // Lerp sprite position towards target
       const currentX = sprite.x;
       const currentY = sprite.y;
       const newX = currentX + (target.x - currentX) * lerpFactor;
@@ -1157,11 +1196,14 @@ export class GameScene extends Phaser.Scene {
         const dy = target.y - currentY;
         const angle = Math.atan2(dy, dx);
 
-        // Set rotation to face movement direction
-        sprite.setRotation(angle);
+        // Set rotation to face movement direction (add 90 degrees + 180 degrees flip)
+        sprite.setRotation(angle + Math.PI / 2 + Math.PI);
 
         // Play walking animation
-        if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== "guardWalk") {
+        if (
+          !sprite.anims.isPlaying ||
+          sprite.anims.currentAnim?.key !== "guardWalk"
+        ) {
           sprite.play("guardWalk");
         }
       } else {
@@ -1537,13 +1579,28 @@ export class GameScene extends Phaser.Scene {
           const tileY = this.player.y / GAME_CONFIG.TILE_SIZE;
 
           // Only send if position or angle has changed significantly
-          const posChanged = Math.abs(tileX - this.lastSentPosition.x) > 0.1 ||
-                            Math.abs(tileY - this.lastSentPosition.y) > 0.1;
-          const angleChanged = Math.abs(this.currentAngle - this.lastSentPosition.angle) > 1;
+          const posChanged =
+            Math.abs(tileX - this.lastSentPosition.x) > 0.1 ||
+            Math.abs(tileY - this.lastSentPosition.y) > 0.1;
+          const angleChanged =
+            Math.abs(this.currentAngle - this.lastSentPosition.angle) > 1;
 
-          if (posChanged || angleChanged || isMoving !== this.player.anims?.isPlaying) {
-            this.colyseusClient.sendMove(tileX, tileY, this.currentAngle, isMoving);
-            this.lastSentPosition = { x: tileX, y: tileY, angle: this.currentAngle };
+          if (
+            posChanged ||
+            angleChanged ||
+            isMoving !== this.player.anims?.isPlaying
+          ) {
+            this.colyseusClient.sendMove(
+              tileX,
+              tileY,
+              this.currentAngle,
+              isMoving
+            );
+            this.lastSentPosition = {
+              x: tileX,
+              y: tileY,
+              angle: this.currentAngle,
+            };
             this.lastUpdateTime = time;
           }
         }
