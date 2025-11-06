@@ -813,10 +813,7 @@ export class GameScene extends Phaser.Scene {
     // Set depth to be same as player so they're visible
     sprite.setDepth(10);
 
-    // Make guard sprite slightly larger and more visible
-    sprite.setDisplaySize(32, 32);
-
-    // Set collision body
+    // Set collision body (using natural sprite size)
     if (sprite.body) {
       sprite.body.setSize(24, 24);
       sprite.body.setOffset(4, 4);

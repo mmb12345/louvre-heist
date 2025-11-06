@@ -328,30 +328,52 @@ export class GameRoom extends Room<GameState> {
   }
 
   private initializeGuards() {
-    // Find all guard rooms
-    const guardRooms = Array.from(this.state.rooms.values()).filter(
-      (room) => room.roomType === ROOM_TYPES.GUARD_ROOM
-    );
+    // Get all rooms
+    const allRooms = Array.from(this.state.rooms.values());
 
-    // Randomly decide how many guards to spawn (1-4)
-    const numGuards = Math.floor(Math.random() * 4) + 1;
-    console.log(`Spawning ${numGuards} guards in ${guardRooms.length} guard rooms`);
+    let totalGuards = 0;
+    let guardIndex = 0;
+    let roomsWithGuards = 0;
 
-    // Spawn guards in random guard rooms
-    for (let i = 0; i < numGuards && i < guardRooms.length; i++) {
-      const room = guardRooms[i];
-      const guard = new Guard();
-      guard.id = `guard_${i}`;
-      guard.patrolPattern = i % PATROL_PATTERNS.length; // Cycle through available patterns
+    // For each room, spawn 1-4 guards
+    allRooms.forEach(room => {
+      // 2 in 3 chance (66.67%) that this room has no guards
+      if (Math.random() < 2/3) {
+        return; // Skip this room
+      }
 
-      // Spawn guard in center of the guard room (in tile coordinates)
-      guard.x = room.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
-      guard.y = room.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
-      guard.patrolIndex = 0;
+      roomsWithGuards++;
 
-      this.state.guards.set(guard.id, guard);
-      console.log(`Guard ${guard.id} spawned at room (${room.gridX}, ${room.gridY}), position (${guard.x}, ${guard.y})`);
-    }
+      // Randomly decide how many guards to spawn in this room (1-4)
+      const numGuardsInRoom = Math.floor(Math.random() * 4) + 1;
+
+      // Spawn guards at random positions within this room
+      for (let i = 0; i < numGuardsInRoom; i++) {
+        const guard = new Guard();
+        guard.id = `guard_${guardIndex}`;
+        guard.patrolPattern = guardIndex % PATROL_PATTERNS.length; // Cycle through available patterns
+
+        // Generate random position within the room (avoiding edges)
+        // Leave 5 tiles margin from each edge to avoid spawning in walls/doors
+        const margin = 5;
+        const minOffset = margin;
+        const maxOffset = GAME_CONFIG.ROOM_SIZE - margin;
+
+        const randomOffsetX = Math.random() * (maxOffset - minOffset) + minOffset;
+        const randomOffsetY = Math.random() * (maxOffset - minOffset) + minOffset;
+
+        // Spawn guard at random position in the room (in tile coordinates)
+        guard.x = room.gridX * GAME_CONFIG.ROOM_SIZE + randomOffsetX;
+        guard.y = room.gridY * GAME_CONFIG.ROOM_SIZE + randomOffsetY;
+        guard.patrolIndex = 0;
+
+        this.state.guards.set(guard.id, guard);
+        guardIndex++;
+        totalGuards++;
+      }
+    });
+
+    console.log(`Spawned ${totalGuards} guards in ${roomsWithGuards} of ${allRooms.length} rooms (${(totalGuards / roomsWithGuards).toFixed(1)} guards per occupied room on average)`);
   }
 
   onJoin(client: Client, options: any) {
