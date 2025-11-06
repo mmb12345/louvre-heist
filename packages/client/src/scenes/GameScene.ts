@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME_CONFIG, ROOM_TYPES } from "@louvre-heist/shared";
 import { ColyseusClient } from "../network/ColyseusClient";
-import type { Player, Room, Guard } from "@louvre-heist/shared";
+import type { Player, Room, Guard, Crown } from "@louvre-heist/shared";
 import { generatePlayerName } from "../utils/nameGenerator";
 
 export class GameScene extends Phaser.Scene {
@@ -44,6 +44,10 @@ export class GameScene extends Phaser.Scene {
   private minimapGuardDots: Map<string, Phaser.GameObjects.Circle> = new Map();
   private rooms: Map<string, Room> = new Map();
   private roomItems: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
+
+  // Crown
+  private crownSprite?: Phaser.GameObjects.Sprite;
+  private crownUIIndicator?: Phaser.GameObjects.Container;
 
   // Console
   private consoleVisible: boolean = false;
@@ -733,6 +737,30 @@ export class GameScene extends Phaser.Scene {
           this.updateGuardTarget(guardId, guard);
         });
       });
+
+      // Use a delayed check to wait for crown to be initialized
+      this.time.delayedCall(1000, () => {
+        if (room.state.crown) {
+          console.log('Crown detected in room state!', room.state.crown);
+          this.renderCrown(room.state.crown);
+
+          // Listen for crown property changes
+          room.state.crown.onChange(() => {
+            console.log('Crown changed!', room.state.crown);
+            if (room.state.crown) {
+              this.renderCrown(room.state.crown);
+            }
+          });
+        } else {
+          console.log('No crown in room state yet');
+        }
+      });
+
+      // Listen for crown picked up event
+      room.onMessage('crown_picked_up', (data: { playerId: string; playerName: string }) => {
+        console.log(`${data.playerName} picked up the crown!`);
+        this.showCrownPickupMessage(data.playerName);
+      });
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
     }
@@ -907,6 +935,129 @@ export class GameScene extends Phaser.Scene {
       // Store the sprite for cleanup
       this.roomItems.set(key, computer);
     }
+  }
+
+  private renderCrown(crown: Crown) {
+    if (crown.pickedUp) {
+      // Crown has been picked up, hide the world sprite
+      if (this.crownSprite) {
+        this.crownSprite.setVisible(false);
+      }
+
+      // Show UI indicator for the player who has it
+      this.updateCrownUIIndicator(crown.ownerId);
+    } else {
+      // Crown is in the world, show it
+      if (!this.crownSprite) {
+        // Create crown sprite
+        this.crownSprite = this.add.sprite(
+          crown.x * GAME_CONFIG.TILE_SIZE,
+          crown.y * GAME_CONFIG.TILE_SIZE,
+          'crown'
+        );
+        this.crownSprite.setDepth(5); // Below player but above floor
+        this.crownSprite.setScale(0.8); // Scale down a bit
+      } else {
+        // Update position and make visible
+        this.crownSprite.setPosition(
+          crown.x * GAME_CONFIG.TILE_SIZE,
+          crown.y * GAME_CONFIG.TILE_SIZE
+        );
+        this.crownSprite.setVisible(true);
+      }
+
+      // Hide UI indicator since no one has it
+      if (this.crownUIIndicator) {
+        this.crownUIIndicator.setVisible(false);
+      }
+    }
+  }
+
+  private updateCrownUIIndicator(ownerId: string) {
+    // Check if the local player has the crown
+    const localPlayerHasCrown = ownerId === this.sessionId;
+
+    if (!this.crownUIIndicator) {
+      // Create crown UI indicator container in top right corner
+      this.crownUIIndicator = this.add.container(0, 0);
+      this.crownUIIndicator.setScrollFactor(0); // Fixed to camera
+      this.crownUIIndicator.setDepth(1000); // On top of everything
+
+      // Background
+      const bg = this.add.rectangle(0, 0, 100, 40, 0x000000, 0.7);
+      this.crownUIIndicator.add(bg);
+
+      // Crown icon (smaller)
+      const crownIcon = this.add.sprite(-30, 0, 'crown');
+      crownIcon.setScale(0.3);
+      this.crownUIIndicator.add(crownIcon);
+
+      // Text
+      const crownText = this.add.text(0, 0, 'Crown', {
+        fontSize: '16px',
+        color: '#FFD700'
+      });
+      crownText.setOrigin(0, 0.5);
+      this.crownUIIndicator.add(crownText);
+
+      // Position in bottom left
+      this.crownUIIndicator.setPosition(
+        80,
+        this.cameras.main.height - 30
+      );
+    }
+
+    // Show/hide based on whether someone has the crown
+    if (ownerId) {
+      this.crownUIIndicator.setVisible(true);
+
+      // Update the text to show who has it
+      const crownText = this.crownUIIndicator.getAt(2) as Phaser.GameObjects.Text;
+      if (localPlayerHasCrown) {
+        crownText.setText('You have\nthe crown!');
+        crownText.setColor('#FFD700');
+      } else {
+        // Find the player name
+        const ownerPlayer = this.otherPlayers.get(ownerId);
+        if (ownerPlayer) {
+          const nameText = ownerPlayer.getData('nameText') as Phaser.GameObjects.Text;
+          const playerName = nameText?.text || 'Player';
+          crownText.setText(`${playerName}\nhas crown`);
+          crownText.setColor('#FFFFFF');
+        }
+      }
+    } else {
+      this.crownUIIndicator.setVisible(false);
+    }
+  }
+
+  private showCrownPickupMessage(playerName: string) {
+    // Show a temporary message in the center of the screen
+    const message = this.add.text(
+      this.cameras.main.centerX,
+      this.cameras.main.centerY - 100,
+      `${playerName} picked up the crown!`,
+      {
+        fontSize: '24px',
+        color: '#FFD700',
+        backgroundColor: '#000000cc',
+        padding: { x: 20, y: 10 }
+      }
+    );
+    message.setOrigin(0.5);
+    message.setScrollFactor(0);
+    message.setDepth(1001);
+
+    // Fade out and destroy after 3 seconds
+    this.tweens.add({
+      targets: message,
+      alpha: 0,
+      duration: 1000,
+      delay: 2000,
+      onComplete: () => {
+        message.destroy();
+      }
+    });
   }
 
   private updatePlayerTarget(sessionId: string, player: Player) {
