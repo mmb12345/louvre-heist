@@ -24,6 +24,11 @@ export class GameScene extends Phaser.Scene {
   private lastUpdateTime: number = 0;
   private updateThrottle: number = 50; // Send updates every 50ms (20 times per second)
 
+  // Minimap
+  private minimapContainer!: Phaser.GameObjects.Container;
+  private minimapPlayerDot!: Phaser.GameObjects.Circle;
+  private minimapOtherPlayerDots: Map<string, Phaser.GameObjects.Circle> = new Map();
+
   constructor() {
     super({ key: "GameScene" });
   }
@@ -97,8 +102,164 @@ export class GameScene extends Phaser.Scene {
     controlsText.setScrollFactor(0);
     controlsText.setDepth(100);
 
+    // Create minimap
+    this.createMinimap();
+
     // Connect to multiplayer server
     await this.setupMultiplayer();
+  }
+
+  private createMinimap() {
+    const minimapSize = 200; // Size of minimap in pixels
+    const minimapX = this.cameras.main.width - minimapSize - 20; // 20px from right edge
+    const minimapY = 20; // 20px from top
+    const roomSize = minimapSize / GAME_CONFIG.ROOMS_GRID; // Size of each room on minimap
+
+    // Create container for minimap
+    this.minimapContainer = this.add.container(minimapX, minimapY);
+    this.minimapContainer.setScrollFactor(0);
+    this.minimapContainer.setDepth(100);
+
+    // Background
+    const bg = this.add.rectangle(0, 0, minimapSize, minimapSize, 0x000000, 0.7);
+    bg.setOrigin(0);
+    this.minimapContainer.add(bg);
+
+    // Border
+    const border = this.add.rectangle(0, 0, minimapSize, minimapSize);
+    border.setOrigin(0);
+    border.setStrokeStyle(2, 0xffffff, 0.8);
+    this.minimapContainer.add(border);
+
+    // Draw room grid
+    const gridGraphics = this.add.graphics();
+    gridGraphics.lineStyle(1, 0xffffff, 0.3);
+
+    for (let y = 0; y <= GAME_CONFIG.ROOMS_GRID; y++) {
+      gridGraphics.lineBetween(
+        0,
+        y * roomSize,
+        minimapSize,
+        y * roomSize
+      );
+    }
+
+    for (let x = 0; x <= GAME_CONFIG.ROOMS_GRID; x++) {
+      gridGraphics.lineBetween(
+        x * roomSize,
+        0,
+        x * roomSize,
+        minimapSize
+      );
+    }
+
+    gridGraphics.setPosition(0, 0);
+    this.minimapContainer.add(gridGraphics);
+
+    // Draw wall indicators on minimap
+    this.drawMinimapWalls(roomSize);
+
+    // Create player dot
+    this.minimapPlayerDot = this.add.circle(0, 0, 4, 0xffffff);
+    this.minimapPlayerDot.setStrokeStyle(2, 0x000000);
+    this.minimapContainer.add(this.minimapPlayerDot);
+
+    // Title
+    const title = this.add.text(minimapSize / 2, -15, "MAP", {
+      fontSize: "14px",
+      color: "#ffffff",
+      fontStyle: "bold",
+    });
+    title.setOrigin(0.5);
+    this.minimapContainer.add(title);
+  }
+
+  private drawMinimapWalls(roomSize: number) {
+    const DOOR_SIZE = 9;
+    const wallGraphics = this.add.graphics();
+    wallGraphics.lineStyle(2, 0x8B7355, 0.8);
+
+    // Draw interior walls with doors
+    for (let roomY = 0; roomY < GAME_CONFIG.ROOMS_GRID; roomY++) {
+      for (let roomX = 0; roomX < GAME_CONFIG.ROOMS_GRID; roomX++) {
+        // Vertical walls
+        if (roomX < GAME_CONFIG.ROOMS_GRID - 1) {
+          const wallX = (roomX + 1) * roomSize;
+          const doorStart = Math.floor((GAME_CONFIG.ROOM_SIZE - DOOR_SIZE) / 2);
+          const doorEnd = doorStart + DOOR_SIZE;
+
+          // Draw wall segments around door
+          const wallStartY = roomY * roomSize;
+          const doorStartY = wallStartY + (doorStart / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const doorEndY = wallStartY + (doorEnd / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const wallEndY = (roomY + 1) * roomSize;
+
+          wallGraphics.lineBetween(wallX, wallStartY, wallX, doorStartY);
+          wallGraphics.lineBetween(wallX, doorEndY, wallX, wallEndY);
+        }
+
+        // Horizontal walls
+        if (roomY < GAME_CONFIG.ROOMS_GRID - 1) {
+          const wallY = (roomY + 1) * roomSize;
+          const doorStart = Math.floor((GAME_CONFIG.ROOM_SIZE - DOOR_SIZE) / 2);
+          const doorEnd = doorStart + DOOR_SIZE;
+
+          // Draw wall segments around door
+          const wallStartX = roomX * roomSize;
+          const doorStartX = wallStartX + (doorStart / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const doorEndX = wallStartX + (doorEnd / GAME_CONFIG.ROOM_SIZE) * roomSize;
+          const wallEndX = (roomX + 1) * roomSize;
+
+          wallGraphics.lineBetween(wallStartX, wallY, doorStartX, wallY);
+          wallGraphics.lineBetween(doorEndX, wallY, wallEndX, wallY);
+        }
+      }
+    }
+
+    this.minimapContainer.add(wallGraphics);
+  }
+
+  private updateMinimap() {
+    const minimapSize = 200;
+    const roomSize = minimapSize / GAME_CONFIG.ROOMS_GRID;
+
+    // Update player position on minimap
+    const playerTileX = this.player.x / GAME_CONFIG.TILE_SIZE;
+    const playerTileY = this.player.y / GAME_CONFIG.TILE_SIZE;
+    const minimapX = (playerTileX / GAME_CONFIG.MAP_WIDTH) * minimapSize;
+    const minimapY = (playerTileY / GAME_CONFIG.MAP_HEIGHT) * minimapSize;
+
+    this.minimapPlayerDot.setPosition(minimapX, minimapY);
+
+    // Update player dot color based on player color
+    const colorMap = {
+      pink: 0xFF00EA,
+      green: 0x00EA50,
+      blue: 0x4169E1
+    };
+    this.minimapPlayerDot.setFillStyle(colorMap[this.playerColor]);
+
+    // Update other players on minimap
+    this.otherPlayers.forEach((sprite, sessionId) => {
+      let dot = this.minimapOtherPlayerDots.get(sessionId);
+
+      if (!dot) {
+        // Create dot for new player
+        const color = sprite.getData("color");
+        dot = this.add.circle(0, 0, 3, colorMap[color as keyof typeof colorMap]);
+        dot.setStrokeStyle(1, 0x000000);
+        this.minimapContainer.add(dot);
+        this.minimapOtherPlayerDots.set(sessionId, dot);
+      }
+
+      // Update position
+      const otherPlayerTileX = sprite.x / GAME_CONFIG.TILE_SIZE;
+      const otherPlayerTileY = sprite.y / GAME_CONFIG.TILE_SIZE;
+      const otherMinimapX = (otherPlayerTileX / GAME_CONFIG.MAP_WIDTH) * minimapSize;
+      const otherMinimapY = (otherPlayerTileY / GAME_CONFIG.MAP_HEIGHT) * minimapSize;
+
+      dot.setPosition(otherMinimapX, otherMinimapY);
+    });
   }
 
   private async setupMultiplayer() {
@@ -192,6 +353,13 @@ export class GameScene extends Phaser.Scene {
       sprite.destroy();
       this.otherPlayers.delete(sessionId);
       this.playerTargets.delete(sessionId);
+
+      // Remove from minimap
+      const minimapDot = this.minimapOtherPlayerDots.get(sessionId);
+      if (minimapDot) {
+        minimapDot.destroy();
+        this.minimapOtherPlayerDots.delete(sessionId);
+      }
     }
   }
 
@@ -429,6 +597,9 @@ export class GameScene extends Phaser.Scene {
 
     // Lerp other players' positions for smooth movement
     this.lerpOtherPlayers();
+
+    // Update minimap
+    this.updateMinimap();
 
     let velocityX = 0;
     let velocityY = 0;
