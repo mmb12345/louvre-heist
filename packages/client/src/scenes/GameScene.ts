@@ -97,17 +97,21 @@ export class GameScene extends Phaser.Scene {
     let velocityX = 0;
     let velocityY = 0;
 
-    // Check WASD keys
+    // Check WASD keys and rotate sprite based on direction
     if (this.wasdKeys.A.isDown) {
       velocityX = -GAME_CONFIG.PLAYER_SPEED;
+      this.player.setAngle(180); // Face left
     } else if (this.wasdKeys.D.isDown) {
       velocityX = GAME_CONFIG.PLAYER_SPEED;
+      this.player.setAngle(0); // Face right
     }
 
     if (this.wasdKeys.W.isDown) {
       velocityY = -GAME_CONFIG.PLAYER_SPEED;
+      this.player.setAngle(270); // Face up
     } else if (this.wasdKeys.S.isDown) {
       velocityY = GAME_CONFIG.PLAYER_SPEED;
+      this.player.setAngle(90); // Face down
     }
 
     // Update player position with boundary checking
