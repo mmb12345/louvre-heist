@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 // Set to true to skip player selection and use a random color
-const SKIP_PLAYER_SELECT = true;
+const SKIP_PLAYER_SELECT = false
 
 export class BootScene extends Phaser.Scene {
   constructor() {
