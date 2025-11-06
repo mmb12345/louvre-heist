@@ -155,11 +155,12 @@ export class GameScene extends Phaser.Scene {
 
             if (!isDoor) {
               const wall = this.walls.create(
-                wallX * GAME_CONFIG.TILE_SIZE,
+                wallX * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
                 (roomY * GAME_CONFIG.ROOM_SIZE + tileY) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
                 'wall'
-              );
-              wall.setOrigin(0, 0.5);
+              ) as Phaser.Physics.Arcade.Sprite;
+              wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+              wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
               wall.refreshBody();
             }
           }
@@ -184,11 +185,11 @@ export class GameScene extends Phaser.Scene {
             if (!isDoor) {
               const wall = this.walls.create(
                 (roomX * GAME_CONFIG.ROOM_SIZE + tileX) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-                wallY * GAME_CONFIG.TILE_SIZE,
+                wallY * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
                 'wall'
-              );
-              wall.setOrigin(0.5, 0);
-              wall.setAngle(90);
+              ) as Phaser.Physics.Arcade.Sprite;
+              wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+              wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
               wall.refreshBody();
             }
           }
@@ -209,21 +210,21 @@ export class GameScene extends Phaser.Scene {
       // Top
       const topWall = this.walls.create(
         x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-        0,
+        GAME_CONFIG.TILE_SIZE / 2,
         'wall'
-      );
-      topWall.setOrigin(0.5, 0);
-      topWall.setAngle(90);
+      ) as Phaser.Physics.Arcade.Sprite;
+      topWall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      topWall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
       topWall.refreshBody();
 
       // Bottom
       const bottomWall = this.walls.create(
         x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
-        mapHeight,
+        mapHeight - GAME_CONFIG.TILE_SIZE / 2,
         'wall'
-      );
-      bottomWall.setOrigin(0.5, 0);
-      bottomWall.setAngle(90);
+      ) as Phaser.Physics.Arcade.Sprite;
+      bottomWall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      bottomWall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
       bottomWall.refreshBody();
     }
 
@@ -231,20 +232,22 @@ export class GameScene extends Phaser.Scene {
     for (let y = 0; y < GAME_CONFIG.MAP_HEIGHT; y++) {
       // Left
       const leftWall = this.walls.create(
-        0,
+        GAME_CONFIG.TILE_SIZE / 2,
         y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
         'wall'
-      );
-      leftWall.setOrigin(0, 0.5);
+      ) as Phaser.Physics.Arcade.Sprite;
+      leftWall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      leftWall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
       leftWall.refreshBody();
 
       // Right
       const rightWall = this.walls.create(
-        mapWidth,
+        mapWidth - GAME_CONFIG.TILE_SIZE / 2,
         y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
         'wall'
-      );
-      rightWall.setOrigin(0, 0.5);
+      ) as Phaser.Physics.Arcade.Sprite;
+      rightWall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      rightWall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
       rightWall.refreshBody();
     }
   }
