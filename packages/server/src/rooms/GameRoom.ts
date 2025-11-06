@@ -674,8 +674,8 @@ export class GameRoom extends Room<GameState> {
       Math.pow(player.y - this.state.postit.y, 2)
     );
 
-    // If player is close enough to post-it (within 1 tile), pick it up
-    if (distance < 1) {
+    // If player is close enough to post-it (within 3 tiles), pick it up
+    if (distance < 3) {
       this.state.postit.pickedUp = true;
 
       console.log(`Player ${player.name} picked up the post-it with password!`);
