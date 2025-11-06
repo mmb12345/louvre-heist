@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 // Set to true to skip player selection and use a random color
-const SKIP_PLAYER_SELECT = true;
+const SKIP_PLAYER_SELECT = false;
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -64,8 +64,11 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     // Check if audio is loaded
-    console.log('BootScene: Checking audio cache...');
-    console.log('boot-scene-bgm exists:', this.cache.audio.exists('boot-scene-bgm'));
+    console.log("BootScene: Checking audio cache...");
+    console.log(
+      "boot-scene-bgm exists:",
+      this.cache.audio.exists("boot-scene-bgm")
+    );
 
     if (SKIP_PLAYER_SELECT) {
       // Skip player selection and use a random color

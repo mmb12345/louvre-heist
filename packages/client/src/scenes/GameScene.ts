@@ -70,6 +70,9 @@ export class GameScene extends Phaser.Scene {
   private exitDoorGraphics?: Phaser.GameObjects.Graphics;
   private exitDoorUnlockedText?: Phaser.GameObjects.Text;
 
+  // Footage objective
+  private footageUIIndicator?: Phaser.GameObjects.Container;
+
   // Console
   private consoleVisible: boolean = false;
   private consoleContainer!: Phaser.GameObjects.Container;
@@ -849,6 +852,30 @@ export class GameScene extends Phaser.Scene {
           this.showPasswordUI(data.password);
         }
       );
+
+      // Listen for objective completed event
+      room.onMessage(
+        "objective_completed",
+        (data: { type: string }) => {
+          console.log(`Objective completed: ${data.type}`);
+          if (data.type === 'destroy_footage') {
+            this.updateFootageUI(true);
+          }
+        }
+      );
+
+      // Listen for exit unlocked event
+      room.onMessage(
+        "exit_unlocked",
+        (data: { playerId: string; playerName: string }) => {
+          console.log(`${data.playerName} unlocked the exit!`);
+          // Show a message or update UI
+          this.showExitUnlockedMessage(data.playerName);
+        }
+      );
+
+      // Initialize footage UI (shown as not completed initially)
+      this.updateFootageUI(false);
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
     }
@@ -1380,6 +1407,116 @@ export class GameScene extends Phaser.Scene {
 
     // Show the password UI
     this.passwordUIIndicator.setVisible(true);
+  }
+
+  private updateFootageUI(isCompleted: boolean) {
+    // Create footage UI indicator in top left corner if it doesn't exist
+    if (!this.footageUIIndicator) {
+      this.footageUIIndicator = this.add.container(0, 0);
+      this.footageUIIndicator.setScrollFactor(0); // Fixed to camera
+      this.footageUIIndicator.setDepth(1000); // On top of everything
+
+      // Background
+      const bg = this.add.rectangle(0, 0, 180, 50, 0x000000, 0.8);
+      this.footageUIIndicator.add(bg);
+
+      // Icon/Status indicator (checkmark or X)
+      const statusIcon = this.add.text(-70, 0, "✗", {
+        fontSize: "24px",
+        color: "#FF0000",
+        fontStyle: "bold",
+      });
+      statusIcon.setOrigin(0.5);
+      this.footageUIIndicator.add(statusIcon);
+
+      // Title
+      const title = this.add.text(15, -8, "Security Footage", {
+        fontSize: "14px",
+        color: "#FFFFFF",
+        fontStyle: "bold",
+      });
+      title.setOrigin(0, 0.5);
+      this.footageUIIndicator.add(title);
+
+      // Status text
+      const statusText = this.add.text(15, 8, "Not Destroyed", {
+        fontSize: "12px",
+        color: "#FF6B6B",
+      });
+      statusText.setOrigin(0, 0.5);
+      this.footageUIIndicator.add(statusText);
+
+      // Position in top left
+      this.footageUIIndicator.setPosition(110, 50);
+    }
+
+    // Update the status based on completion
+    const statusIcon = this.footageUIIndicator.getAt(1) as Phaser.GameObjects.Text;
+    const statusText = this.footageUIIndicator.getAt(3) as Phaser.GameObjects.Text;
+
+    if (isCompleted) {
+      statusIcon.setText("✓");
+      statusIcon.setColor("#00FF00");
+      statusText.setText("Destroyed!");
+      statusText.setColor("#00FF00");
+    } else {
+      statusIcon.setText("✗");
+      statusIcon.setColor("#FF0000");
+      statusText.setText("Not Destroyed");
+      statusText.setColor("#FF6B6B");
+    }
+
+    this.footageUIIndicator.setVisible(true);
+  }
+
+  private showExitUnlockedMessage(playerName: string) {
+    // Create a temporary message in the center of the screen
+    const centerX = this.cameras.main.width / 2;
+    const centerY = this.cameras.main.height / 2;
+
+    const messageContainer = this.add.container(centerX, centerY);
+    messageContainer.setScrollFactor(0);
+    messageContainer.setDepth(2000);
+
+    // Background
+    const bg = this.add.rectangle(0, 0, 400, 100, 0x000000, 0.9);
+    messageContainer.add(bg);
+
+    // Message text
+    const messageText = this.add.text(
+      0,
+      -10,
+      playerName === this.sessionId ? "You unlocked the exit!" : `${playerName} unlocked the exit!`,
+      {
+        fontSize: "24px",
+        color: "#00FF00",
+        fontStyle: "bold",
+        align: "center",
+      }
+    );
+    messageText.setOrigin(0.5);
+    messageContainer.add(messageText);
+
+    // Subtitle
+    const subtitle = this.add.text(0, 20, "The exit door is now open!", {
+      fontSize: "16px",
+      color: "#FFFFFF",
+      align: "center",
+    });
+    subtitle.setOrigin(0.5);
+    messageContainer.add(subtitle);
+
+    // Fade out after 3 seconds
+    this.time.delayedCall(3000, () => {
+      this.tweens.add({
+        targets: messageContainer,
+        alpha: 0,
+        duration: 500,
+        onComplete: () => {
+          messageContainer.destroy();
+        },
+      });
+    });
   }
 
   private updatePlayerTarget(sessionId: string, player: Player) {

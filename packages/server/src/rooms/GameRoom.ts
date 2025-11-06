@@ -729,9 +729,6 @@ export class GameRoom extends Room<GameState> {
     // Check if password has been picked up
     if (!this.state.postit || !this.state.postit.pickedUp) return;
 
-    // Check if exit door already unlocked
-    if (!this.state.exitDoor || this.state.exitDoor.unlocked) return;
-
     // Find the security room
     const securityRoom = Array.from(this.state.rooms.values()).find(
       room => room.roomType === ROOM_TYPES.SECURITY_ROOM
@@ -749,16 +746,27 @@ export class GameRoom extends Room<GameState> {
       Math.pow(player.y - roomCenterY, 2)
     );
 
-    // If player is close enough to the computer (within 5 tiles), unlock the exit
+    // If player is close enough to the computer (within 5 tiles)
     if (distance < 5) {
-      this.state.exitDoor.unlocked = true;
+      // Get the destroy footage objective
+      const destroyFootageObjective = this.state.objectives.get('security');
 
-      console.log(`Player ${player.name} unlocked the exit door!`);
-      // Broadcast to all players that the exit is unlocked
-      this.broadcast('exit_unlocked', {
-        playerId: player.id,
-        playerName: player.name
-      });
+      // Complete the destroy footage objective if not already completed
+      if (destroyFootageObjective && !destroyFootageObjective.completed) {
+        destroyFootageObjective.completed = true;
+        console.log(`Player ${player.name} destroyed the security footage!`);
+        this.broadcast('objective_completed', { type: OBJECTIVES.DESTROY_FOOTAGE });
+      }
+
+      // Unlock the exit door if not already unlocked
+      if (this.state.exitDoor && !this.state.exitDoor.unlocked) {
+        this.state.exitDoor.unlocked = true;
+        console.log(`Player ${player.name} unlocked the exit door!`);
+        this.broadcast('exit_unlocked', {
+          playerId: player.id,
+          playerName: player.name
+        });
+      }
     }
   }
 
