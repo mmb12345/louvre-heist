@@ -27,9 +27,11 @@ export class GameScene extends Phaser.Scene {
     this.walls = this.physics.add.staticGroup();
     this.createWalls();
 
-    // Create player sprite at center
-    const startX = (GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE) / 2;
-    const startY = (GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE) / 2;
+    // Create player sprite in bottom middle room
+    const startRoomX = 4; // Middle room (0-9 grid)
+    const startRoomY = 9; // Bottom row
+    const startX = (startRoomX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2) * GAME_CONFIG.TILE_SIZE;
+    const startY = (startRoomY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE * 0.75) * GAME_CONFIG.TILE_SIZE;
 
     this.player = this.physics.add.sprite(
       startX,
