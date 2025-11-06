@@ -8,6 +8,8 @@ export class PlayerSelectScene extends Phaser.Scene {
   }
 
   create() {
+   this.sound.play("boot-scene-bgm", { loop: true, volume: 0.3 })
+
     const centerX = this.cameras.main.width / 2;
     const centerY = this.cameras.main.height / 2;
 
@@ -62,9 +64,17 @@ export class PlayerSelectScene extends Phaser.Scene {
 
   private startGame() {
     if (this.selectedColor) {
+      // Stop the boot-scene-bgm before transitioning
+      this.sound.stopByKey('boot-scene-bgm');
+
       // Pass the selected color to GameScene via registry
       this.registry.set('playerColor', this.selectedColor);
       this.scene.start('GameScene');
     }
+  }
+
+  shutdown() {
+    // Make sure boot-scene-bgm stops if scene is shut down by other means
+    this.sound.stopByKey('boot-scene-bgm');
   }
 }
