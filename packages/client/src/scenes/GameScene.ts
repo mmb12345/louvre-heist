@@ -19,6 +19,9 @@ export class GameScene extends Phaser.Scene {
   private colyseusClient!: ColyseusClient;
   private sessionId?: string;
   private otherPlayers: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
+  private playerTargets: Map<string, { x: number; y: number; angle: number; isMoving: boolean }> = new Map();
+  private lastUpdateTime: number = 0;
+  private updateThrottle: number = 50; // Send updates every 50ms (20 times per second)
 
   constructor() {
     super({ key: "GameScene" });
@@ -116,18 +119,19 @@ export class GameScene extends Phaser.Scene {
 
         console.log("Player joined:", sessionId, player.color);
         this.addOtherPlayer(sessionId, player);
+
+        // Listen to individual player changes for smooth updates
+        player.onChange(() => {
+          if (sessionId !== this.sessionId) {
+            this.updatePlayerTarget(sessionId, player);
+          }
+        });
       });
 
       // Listen for other players leaving
       room.state.players.onRemove((player: Player, sessionId: string) => {
         console.log("Player left:", sessionId);
         this.removeOtherPlayer(sessionId);
-      });
-
-      // Listen for player position/state changes
-      room.state.players.onChange((player: Player, sessionId: string) => {
-        if (sessionId === this.sessionId) return; // Skip our own updates
-        this.updateOtherPlayer(sessionId, player);
       });
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
@@ -150,6 +154,17 @@ export class GameScene extends Phaser.Scene {
 
     this.otherPlayers.set(sessionId, sprite);
 
+    // Store color in sprite data for animation
+    sprite.setData("color", player.color);
+
+    // Initialize target position for lerping
+    this.playerTargets.set(sessionId, {
+      x: player.x * GAME_CONFIG.TILE_SIZE,
+      y: player.y * GAME_CONFIG.TILE_SIZE,
+      angle: player.angle,
+      isMoving: player.isMoving,
+    });
+
     // Add player name label
     const nameText = this.add.text(0, -40, player.name, {
       fontSize: "14px",
@@ -168,50 +183,75 @@ export class GameScene extends Phaser.Scene {
       if (nameText) nameText.destroy();
       sprite.destroy();
       this.otherPlayers.delete(sessionId);
+      this.playerTargets.delete(sessionId);
     }
   }
 
-  private updateOtherPlayer(sessionId: string, player: Player) {
-    const sprite = this.otherPlayers.get(sessionId);
-    if (!sprite) return;
+  private updatePlayerTarget(sessionId: string, player: Player) {
+    // Update the target position for lerping
+    this.playerTargets.set(sessionId, {
+      x: player.x * GAME_CONFIG.TILE_SIZE,
+      y: player.y * GAME_CONFIG.TILE_SIZE,
+      angle: player.angle,
+      isMoving: player.isMoving,
+    });
+  }
 
-    // Update position
-    sprite.setPosition(
-      player.x * GAME_CONFIG.TILE_SIZE,
-      player.y * GAME_CONFIG.TILE_SIZE
-    );
+  private lerpOtherPlayers() {
+    // Interpolate positions of all other players for smooth movement
+    this.otherPlayers.forEach((sprite, sessionId) => {
+      const target = this.playerTargets.get(sessionId);
+      if (!target) return;
 
-    // Update angle
-    sprite.setAngle(player.angle);
+      const color = sprite.getData("color");
+      const lerpFactor = 0.2; // Interpolation speed (0.2 = 20% per frame)
 
-    // Update animation
-    if (player.isMoving) {
-      if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== `${player.color}Walk`) {
-        // Create animation for this player color if it doesn't exist
-        const walkAnimKey = `${player.color}Walk`;
+      // Lerp position
+      const currentX = sprite.x;
+      const currentY = sprite.y;
+      const newX = currentX + (target.x - currentX) * lerpFactor;
+      const newY = currentY + (target.y - currentY) * lerpFactor;
+
+      sprite.setPosition(newX, newY);
+
+      // Lerp angle
+      let angleDiff = target.angle - sprite.angle;
+      // Handle angle wrapping (shortest path)
+      if (angleDiff > 180) angleDiff -= 360;
+      if (angleDiff < -180) angleDiff += 360;
+      const newAngle = sprite.angle + angleDiff * lerpFactor;
+      sprite.setAngle(newAngle);
+
+      // Update animation based on movement state
+      if (target.isMoving) {
+        const walkAnimKey = `${color}Walk`;
         if (!this.anims.exists(walkAnimKey)) {
           this.anims.create({
             key: walkAnimKey,
             frames: [
-              { key: `${player.color}Walk1` },
-              { key: `${player.color}Walk2` },
+              { key: `${color}Walk1` },
+              { key: `${color}Walk2` },
             ],
             frameRate: 8,
             repeat: -1,
           });
         }
-        sprite.play(walkAnimKey);
+        if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== walkAnimKey) {
+          sprite.play(walkAnimKey);
+        }
+      } else {
+        if (sprite.anims.isPlaying) {
+          sprite.stop();
+          sprite.setTexture(`${color}Still`);
+        }
       }
-    } else {
-      sprite.stop();
-      sprite.setTexture(`${player.color}Still`);
-    }
 
-    // Update name label position
-    const nameText = sprite.getData("nameText");
-    if (nameText) {
-      nameText.setPosition(sprite.x, sprite.y - 40);
-    }
+      // Update name label position
+      const nameText = sprite.getData("nameText");
+      if (nameText) {
+        nameText.setPosition(sprite.x, sprite.y - 40);
+      }
+    });
   }
 
   private createBackground() {
@@ -376,8 +416,11 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  update() {
+  update(time: number) {
     if (!this.player) return;
+
+    // Lerp other players' positions for smooth movement
+    this.lerpOtherPlayers();
 
     let velocityX = 0;
     let velocityY = 0;
@@ -441,12 +484,15 @@ export class GameScene extends Phaser.Scene {
     // Update player velocity (physics handles collision)
     this.player.setVelocity(velocityX * 60, velocityY * 60);
 
-    // Send position to server
+    // Send position to server (throttled)
     if (this.colyseusClient && this.colyseusClient.room) {
-      // Convert pixel position to tile position for server
-      const tileX = this.player.x / GAME_CONFIG.TILE_SIZE;
-      const tileY = this.player.y / GAME_CONFIG.TILE_SIZE;
-      this.colyseusClient.sendMove(tileX, tileY, this.currentAngle, isMoving);
+      if (time - this.lastUpdateTime > this.updateThrottle) {
+        // Convert pixel position to tile position for server
+        const tileX = this.player.x / GAME_CONFIG.TILE_SIZE;
+        const tileY = this.player.y / GAME_CONFIG.TILE_SIZE;
+        this.colyseusClient.sendMove(tileX, tileY, this.currentAngle, isMoving);
+        this.lastUpdateTime = time;
+      }
     }
   }
 }
