@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME_CONFIG, ROOM_TYPES } from "@louvre-heist/shared";
 import { ColyseusClient } from "../network/ColyseusClient";
-import type { Player, Room, Guard, Crown, PostIt } from "@louvre-heist/shared";
+import type { Player, Room, Guard, Crown, PostIt, ExitDoor } from "@louvre-heist/shared";
 import { generatePlayerName } from "../utils/nameGenerator";
 
 export class GameScene extends Phaser.Scene {
@@ -58,6 +58,10 @@ export class GameScene extends Phaser.Scene {
   // Post-it
   private postitSprite?: Phaser.GameObjects.Sprite;
   private passwordUIIndicator?: Phaser.GameObjects.Container;
+
+  // Exit door
+  private exitDoorGraphics?: Phaser.GameObjects.Graphics;
+  private exitDoorUnlockedText?: Phaser.GameObjects.Text;
 
   // Console
   private consoleVisible: boolean = false;
@@ -835,6 +839,33 @@ export class GameScene extends Phaser.Scene {
           this.showPasswordUI(data.password);
         }
       );
+
+      // Listen for exit unlocked event
+      room.onMessage(
+        "exit_unlocked",
+        (data: { playerId: string; playerName: string }) => {
+          console.log(`${data.playerName} unlocked the exit door!`);
+          if (room.state.exitDoor) {
+            this.renderExitDoor(room.state.exitDoor);
+          }
+        }
+      );
+
+      // Render exit door initially
+      this.time.delayedCall(1000, () => {
+        if (room.state.exitDoor) {
+          console.log("Exit door detected in room state!", room.state.exitDoor);
+          this.renderExitDoor(room.state.exitDoor);
+
+          // Listen for exit door property changes
+          room.state.exitDoor.onChange(() => {
+            console.log("Exit door changed!", room.state.exitDoor);
+            if (room.state.exitDoor) {
+              this.renderExitDoor(room.state.exitDoor);
+            }
+          });
+        }
+      });
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
     }
@@ -1227,6 +1258,94 @@ export class GameScene extends Phaser.Scene {
         );
         this.postitSprite.setVisible(true);
       }
+    }
+  }
+
+  private renderExitDoor(exitDoor: ExitDoor) {
+    // Clear existing exit door graphics
+    if (this.exitDoorGraphics) {
+      this.exitDoorGraphics.destroy();
+    }
+    if (this.exitDoorUnlockedText) {
+      this.exitDoorUnlockedText.destroy();
+    }
+
+    // Create graphics for exit door (blue room on edge of map)
+    this.exitDoorGraphics = this.add.graphics();
+    const tileSize = GAME_CONFIG.TILE_SIZE;
+
+    // Determine which wall the exit is on
+    const isOnTopWall = exitDoor.y === 0;
+    const isOnBottomWall = exitDoor.y === GAME_CONFIG.MAP_HEIGHT - 1;
+    const isOnLeftWall = exitDoor.x === 0;
+    const isOnRightWall = exitDoor.x === GAME_CONFIG.MAP_WIDTH - 1;
+
+    // Draw blue room (5 tiles wide, 2 tiles deep into the wall)
+    const roomWidth = tileSize * 5;
+    const roomDepth = tileSize * 2;
+
+    // Always show blue room (0x3a7ebf is a nice blue color)
+    this.exitDoorGraphics.fillStyle(0x3a7ebf, 0.6);
+
+    let roomX, roomY, centerX, centerY;
+
+    if (isOnTopWall) {
+      // Room extends upward from top wall
+      roomX = exitDoor.x * tileSize - roomWidth / 2;
+      roomY = exitDoor.y * tileSize - roomDepth;
+      centerX = exitDoor.x * tileSize;
+      centerY = exitDoor.y * tileSize - roomDepth / 2;
+      this.exitDoorGraphics.fillRect(roomX, roomY, roomWidth, roomDepth);
+    } else if (isOnBottomWall) {
+      // Room extends downward from bottom wall
+      roomX = exitDoor.x * tileSize - roomWidth / 2;
+      roomY = exitDoor.y * tileSize + tileSize;
+      centerX = exitDoor.x * tileSize;
+      centerY = exitDoor.y * tileSize + roomDepth / 2 + tileSize;
+      this.exitDoorGraphics.fillRect(roomX, roomY, roomWidth, roomDepth);
+    } else if (isOnLeftWall) {
+      // Room extends leftward from left wall
+      roomX = exitDoor.x * tileSize - roomDepth;
+      roomY = exitDoor.y * tileSize - roomWidth / 2;
+      centerX = exitDoor.x * tileSize - roomDepth / 2;
+      centerY = exitDoor.y * tileSize;
+      this.exitDoorGraphics.fillRect(roomX, roomY, roomDepth, roomWidth);
+    } else {
+      // Room extends rightward from right wall
+      roomX = exitDoor.x * tileSize + tileSize;
+      roomY = exitDoor.y * tileSize - roomWidth / 2;
+      centerX = exitDoor.x * tileSize + roomDepth / 2 + tileSize;
+      centerY = exitDoor.y * tileSize;
+      this.exitDoorGraphics.fillRect(roomX, roomY, roomDepth, roomWidth);
+    }
+
+    this.exitDoorGraphics.setDepth(1); // Above floor
+
+    // Add text label
+    if (exitDoor.unlocked) {
+      // Green "EXIT" when unlocked
+      this.exitDoorUnlockedText = this.add.text(centerX, centerY, "EXIT\nUNLOCKED", {
+        fontSize: "14px",
+        color: "#00ff00",
+        fontStyle: "bold",
+        backgroundColor: "#000000",
+        padding: { x: 4, y: 2 },
+        align: "center",
+      });
+      this.exitDoorUnlockedText.setOrigin(0.5);
+      this.exitDoorUnlockedText.setDepth(2);
+    } else {
+      // Red "LOCKED" when locked
+      this.exitDoorUnlockedText = this.add.text(centerX, centerY, "EXIT\nLOCKED", {
+        fontSize: "14px",
+        color: "#ff0000",
+        fontStyle: "bold",
+        backgroundColor: "#000000",
+        padding: { x: 4, y: 2 },
+        align: "center",
+      });
+      this.exitDoorUnlockedText.setOrigin(0.5);
+      this.exitDoorUnlockedText.setDepth(2);
     }
   }
 
