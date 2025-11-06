@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { GAME_CONFIG } from "@louvre-heist/shared";
 import { ColyseusClient } from "../network/ColyseusClient";
 import type { Player } from "@louvre-heist/shared";
+import { generatePlayerName } from "../utils/nameGenerator";
 
 export class GameScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
@@ -103,9 +104,13 @@ export class GameScene extends Phaser.Scene {
   private async setupMultiplayer() {
     try {
       this.colyseusClient = new ColyseusClient();
+
+      // Generate a unique player name based on color
+      const playerName = generatePlayerName(this.playerColor);
+
       const room = await this.colyseusClient.joinOrCreate(
         "game-room",
-        "Player",
+        playerName,
         this.playerColor
       );
 
@@ -168,13 +173,14 @@ export class GameScene extends Phaser.Scene {
     });
 
     // Add player name label
-    const nameText = this.add.text(0, -40, player.name, {
-      fontSize: "14px",
+    const nameText = this.add.text(0, 0, player.name, {
+      fontSize: "16px",
       color: "#ffffff",
-      backgroundColor: "#000000",
-      padding: { x: 4, y: 2 },
+      backgroundColor: "#000000cc",
+      padding: { x: 6, y: 3 },
     });
     nameText.setOrigin(0.5);
+    nameText.setDepth(11); // Above player sprites
     sprite.setData("nameText", nameText);
   }
 
@@ -248,10 +254,10 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
-      // Update name label position
+      // Update name label position (above the player sprite)
       const nameText = sprite.getData("nameText");
       if (nameText) {
-        nameText.setPosition(sprite.x, sprite.y - 40);
+        nameText.setPosition(sprite.x, sprite.y - 30);
       }
     });
   }
