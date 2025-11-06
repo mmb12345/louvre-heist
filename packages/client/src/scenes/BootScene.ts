@@ -48,6 +48,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image("guardWalk1", "/assets/guardWalk1.svg");
     this.load.image("guardWalk2", "/assets/guardWalk2.svg");
     this.load.image("guardShoot", "/assets/guardShoot.svg");
+    this.load.image("guardDead", "/assets/guardDead.svg");
 
     // Create tile texture
     this.createTileTexture();

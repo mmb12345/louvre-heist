@@ -943,6 +943,47 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private killGuard(guardId: string, impactAngle: number) {
+    const sprite = this.guards.get(guardId);
+    if (!sprite) return;
+
+    // Mark as dead to prevent multiple kills
+    sprite.setData("isDead", true);
+
+    // Change to dead sprite
+    sprite.setTexture("guardDead");
+
+    // Stop any animation
+    if (sprite.anims.isPlaying) {
+      sprite.stop();
+    }
+
+    // Rotate guard to fall away from bullet impact
+    // Add 90 degrees (PI/2) to align with sprite orientation
+    sprite.setRotation(impactAngle + Math.PI / 2);
+
+    // Lower depth so dead guards are below living entities but above floor
+    sprite.setDepth(6); // Below players (10) and living guards (10), above crown/items (5)
+
+    // Remove from guards group (no more collision with bullets)
+    this.guardsGroup.remove(sprite, false, false);
+
+    // Disable physics body but keep sprite visible
+    if (sprite.body) {
+      sprite.body.enable = false;
+    }
+
+    // Remove from tracking (no more movement updates)
+    this.guardTargets.delete(guardId);
+    this.guardLastServerPos.delete(guardId);
+
+    // Change minimap dot to gray to show dead
+    const dot = this.minimapGuardDots.get(guardId);
+    if (dot) {
+      dot.setFillStyle(0x666666); // Gray for dead
+    }
+  }
+
   private removeGuard(guardId: string) {
     const sprite = this.guards.get(guardId);
     if (sprite) {
@@ -1202,6 +1243,10 @@ export class GameScene extends Phaser.Scene {
 
     // Interpolate positions of all guards for smooth movement
     this.guards.forEach((sprite, guardId) => {
+      // Skip dead guards (they stay in place)
+      const isDead = sprite.getData("isDead");
+      if (isDead) return;
+
       // Get current server position for this guard
       const guard = this.colyseusClient.room!.state.guards.get(guardId);
       if (!guard) return;
@@ -1449,16 +1494,27 @@ export class GameScene extends Phaser.Scene {
     bullet: Phaser.GameObjects.GameObject,
     guard: Phaser.GameObjects.GameObject
   ) {
+    const bulletSprite = bullet as Phaser.Physics.Arcade.Sprite;
+    const guardSprite = guard as Phaser.Physics.Arcade.Sprite;
+
+    // Calculate the direction from bullet to guard (direction of impact)
+    const dx = guardSprite.x - bulletSprite.x;
+    const dy = guardSprite.y - bulletSprite.y;
+    const impactAngle = Math.atan2(dy, dx);
+
     // Destroy the bullet
     bullet.destroy();
 
     // Find the guard ID from the sprite
-    const guardSprite = guard as Phaser.Physics.Arcade.Sprite;
     const guardId = guardSprite.getData("guardId");
 
     if (guardId) {
-      // Remove guard from the map
-      this.removeGuard(guardId);
+      // Check if already dead
+      const isDead = guardSprite.getData("isDead");
+      if (isDead) return; // Already dead, don't process again
+
+      // Mark guard as dead (leave body on floor), pass impact direction
+      this.killGuard(guardId, impactAngle);
 
       // Notify server that guard was killed
       if (this.colyseusClient && this.colyseusClient.room) {
