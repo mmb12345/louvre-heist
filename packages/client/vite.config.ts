@@ -4,7 +4,7 @@ import { resolve } from 'path';
 export default defineConfig({
   resolve: {
     alias: {
-      '@louvre-heist/shared': resolve(__dirname, '../shared/src'),
+      '@louvre-heist/shared': resolve(__dirname, '../shared'),
     },
   },
   server: {

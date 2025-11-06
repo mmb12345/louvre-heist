@@ -7,7 +7,7 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@louvre-heist/shared": ["../shared/src"]
+      "@louvre-heist/shared": ["../shared"]
     }
   },
   "include": ["src"]

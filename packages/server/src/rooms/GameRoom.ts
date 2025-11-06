@@ -1,4 +1,4 @@
-import { Room, Client } from 'colyseus';
+import { Room, Client } from '@colyseus/core';
 import { GameState, Player, Guard, Objective } from '@louvre-heist/shared';
 import {
   GAME_CONFIG,
