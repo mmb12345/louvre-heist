@@ -95,109 +95,52 @@ export class GameScene extends Phaser.Scene {
 
   private createWalls() {
     const DOOR_SIZE = 3; // Door width in tiles
-    const MIN_DOORS_PER_ROOM = 3;
 
-    // Track doors for each room (roomX, roomY, side) -> door positions
-    const roomDoors: Map<string, Set<number>> = new Map();
-
-    // Helper to get/create door set for a room side
-    const getDoorSet = (roomX: number, roomY: number, side: string): Set<number> => {
-      const key = `${roomX},${roomY},${side}`;
-      if (!roomDoors.has(key)) {
-        roomDoors.set(key, new Set());
-      }
-      return roomDoors.get(key)!;
-    };
-
-    // Generate doors for each room
+    // Create walls between rooms (interior walls only)
     for (let roomY = 0; roomY < GAME_CONFIG.ROOMS_GRID; roomY++) {
       for (let roomX = 0; roomX < GAME_CONFIG.ROOMS_GRID; roomX++) {
-        const sides = ['top', 'right', 'bottom', 'left'];
-        const availableSides = [...sides];
 
-        // Ensure at least 3 doors per room
-        for (let i = 0; i < MIN_DOORS_PER_ROOM; i++) {
-          if (availableSides.length === 0) break;
-
-          const sideIndex = Math.floor(Math.random() * availableSides.length);
-          const side = availableSides[sideIndex];
-          availableSides.splice(sideIndex, 1);
-
-          // Pick a random position for the door (avoid corners)
-          const doorPos = Math.floor(Math.random() * (GAME_CONFIG.ROOM_SIZE - DOOR_SIZE - 4)) + 2;
-
-          getDoorSet(roomX, roomY, side).add(doorPos);
-        }
-
-        // Maybe add a 4th door randomly
-        if (Math.random() < 0.3 && availableSides.length > 0) {
-          const side = availableSides[Math.floor(Math.random() * availableSides.length)];
-          const doorPos = Math.floor(Math.random() * (GAME_CONFIG.ROOM_SIZE - DOOR_SIZE - 4)) + 2;
-          getDoorSet(roomX, roomY, side).add(doorPos);
-        }
-      }
-    }
-
-    // Create walls between rooms
-    for (let roomY = 0; roomY < GAME_CONFIG.ROOMS_GRID; roomY++) {
-      for (let roomX = 0; roomX < GAME_CONFIG.ROOMS_GRID; roomX++) {
-        // Right wall (vertical)
+        // Create right wall (vertical) between this room and the next
         if (roomX < GAME_CONFIG.ROOMS_GRID - 1) {
           const wallX = (roomX + 1) * GAME_CONFIG.ROOM_SIZE;
-          const currentDoors = getDoorSet(roomX, roomY, 'right');
-          const neighborDoors = getDoorSet(roomX + 1, roomY, 'left');
-          const allDoors = new Set([...currentDoors, ...neighborDoors]);
+          // Door in the middle of the wall
+          const doorStart = Math.floor((GAME_CONFIG.ROOM_SIZE - DOOR_SIZE) / 2);
 
           for (let tileY = 0; tileY < GAME_CONFIG.ROOM_SIZE; tileY++) {
-            let isDoor = false;
-            for (const doorPos of allDoors) {
-              if (tileY >= doorPos && tileY < doorPos + DOOR_SIZE) {
-                isDoor = true;
-                break;
-              }
-            }
+            const isDoor = tileY >= doorStart && tileY < doorStart + DOOR_SIZE;
 
             if (!isDoor) {
               const wallSprite = this.walls.create(
                 wallX * GAME_CONFIG.TILE_SIZE,
-                (roomY * GAME_CONFIG.ROOM_SIZE + tileY) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+                (roomY * GAME_CONFIG.ROOM_SIZE + tileY) * GAME_CONFIG.TILE_SIZE,
                 'wall'
               ) as Phaser.Physics.Arcade.Sprite;
-              wallSprite.setOrigin(0, 0.5);
+              wallSprite.setOrigin(0, 0);
               wallSprite.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
               wallSprite.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-              wallSprite.body.setOffset(0, 0);
               wallSprite.refreshBody();
             }
           }
         }
 
-        // Bottom wall (horizontal)
+        // Create bottom wall (horizontal) between this room and the one below
         if (roomY < GAME_CONFIG.ROOMS_GRID - 1) {
           const wallY = (roomY + 1) * GAME_CONFIG.ROOM_SIZE;
-          const currentDoors = getDoorSet(roomX, roomY, 'bottom');
-          const neighborDoors = getDoorSet(roomX, roomY + 1, 'top');
-          const allDoors = new Set([...currentDoors, ...neighborDoors]);
+          // Door in the middle of the wall
+          const doorStart = Math.floor((GAME_CONFIG.ROOM_SIZE - DOOR_SIZE) / 2);
 
           for (let tileX = 0; tileX < GAME_CONFIG.ROOM_SIZE; tileX++) {
-            let isDoor = false;
-            for (const doorPos of allDoors) {
-              if (tileX >= doorPos && tileX < doorPos + DOOR_SIZE) {
-                isDoor = true;
-                break;
-              }
-            }
+            const isDoor = tileX >= doorStart && tileX < doorStart + DOOR_SIZE;
 
             if (!isDoor) {
               const wallSprite = this.walls.create(
-                (roomX * GAME_CONFIG.ROOM_SIZE + tileX) * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+                (roomX * GAME_CONFIG.ROOM_SIZE + tileX) * GAME_CONFIG.TILE_SIZE,
                 wallY * GAME_CONFIG.TILE_SIZE,
                 'wall'
               ) as Phaser.Physics.Arcade.Sprite;
-              wallSprite.setOrigin(0.5, 0);
+              wallSprite.setOrigin(0, 0);
               wallSprite.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
               wallSprite.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-              wallSprite.body.setOffset(0, 0);
               wallSprite.refreshBody();
             }
           }
@@ -213,58 +156,56 @@ export class GameScene extends Phaser.Scene {
     const mapWidth = GAME_CONFIG.MAP_WIDTH * GAME_CONFIG.TILE_SIZE;
     const mapHeight = GAME_CONFIG.MAP_HEIGHT * GAME_CONFIG.TILE_SIZE;
 
-    // Top and bottom walls
+    // Top wall
     for (let x = 0; x < GAME_CONFIG.MAP_WIDTH; x++) {
-      // Top
-      const topWall = this.walls.create(
-        x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+      const wall = this.walls.create(
+        x * GAME_CONFIG.TILE_SIZE,
         0,
         'wall'
       ) as Phaser.Physics.Arcade.Sprite;
-      topWall.setOrigin(0.5, 0);
-      topWall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      topWall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      topWall.body.setOffset(0, 0);
-      topWall.refreshBody();
+      wall.setOrigin(0, 0);
+      wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
+    }
 
-      // Bottom
-      const bottomWall = this.walls.create(
-        x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+    // Bottom wall
+    for (let x = 0; x < GAME_CONFIG.MAP_WIDTH; x++) {
+      const wall = this.walls.create(
+        x * GAME_CONFIG.TILE_SIZE,
         mapHeight - GAME_CONFIG.TILE_SIZE,
         'wall'
       ) as Phaser.Physics.Arcade.Sprite;
-      bottomWall.setOrigin(0.5, 0);
-      bottomWall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      bottomWall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      bottomWall.body.setOffset(0, 0);
-      bottomWall.refreshBody();
+      wall.setOrigin(0, 0);
+      wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
     }
 
-    // Left and right walls
+    // Left wall
     for (let y = 0; y < GAME_CONFIG.MAP_HEIGHT; y++) {
-      // Left
-      const leftWall = this.walls.create(
+      const wall = this.walls.create(
         0,
-        y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+        y * GAME_CONFIG.TILE_SIZE,
         'wall'
       ) as Phaser.Physics.Arcade.Sprite;
-      leftWall.setOrigin(0, 0.5);
-      leftWall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      leftWall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      leftWall.body.setOffset(0, 0);
-      leftWall.refreshBody();
+      wall.setOrigin(0, 0);
+      wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
+    }
 
-      // Right
-      const rightWall = this.walls.create(
+    // Right wall
+    for (let y = 0; y < GAME_CONFIG.MAP_HEIGHT; y++) {
+      const wall = this.walls.create(
         mapWidth - GAME_CONFIG.TILE_SIZE,
-        y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+        y * GAME_CONFIG.TILE_SIZE,
         'wall'
       ) as Phaser.Physics.Arcade.Sprite;
-      rightWall.setOrigin(0, 0.5);
-      rightWall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      rightWall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
-      rightWall.body.setOffset(0, 0);
-      rightWall.refreshBody();
+      wall.setOrigin(0, 0);
+      wall.setDisplaySize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.body.setSize(GAME_CONFIG.TILE_SIZE, GAME_CONFIG.TILE_SIZE);
+      wall.refreshBody();
     }
   }
 
