@@ -1,8 +1,9 @@
 import { Room, Client } from '@colyseus/core';
-import { GameState, Player, Guard, Objective } from '@louvre-heist/shared';
+import { GameState, Player, Guard, Objective, Room as RoomSchema } from '@louvre-heist/shared';
 import {
   GAME_CONFIG,
   OBJECTIVES,
+  ROOM_TYPES,
   PATROL_PATTERNS,
   type PlayerInput,
   type PatrolPattern
@@ -16,9 +17,50 @@ export class GameRoom extends Room<GameState> {
     this.setState(new GameState());
     this.state.timeRemaining = GAME_CONFIG.GAME_DURATION;
 
+    this.generateMap();
     this.setupMessageHandlers();
     this.initializeObjectives();
     this.initializeGuards();
+  }
+
+  private generateMap() {
+    const gridSize = GAME_CONFIG.ROOMS_GRID; // 10x10 grid
+
+    // Define special room locations (spread out across the map)
+    const specialRooms = [
+      { x: 1, y: 1, type: ROOM_TYPES.GUARD_ROOM },
+      { x: 8, y: 1, type: ROOM_TYPES.GUARD_ROOM },
+      { x: 1, y: 8, type: ROOM_TYPES.GUARD_ROOM },
+      { x: 8, y: 8, type: ROOM_TYPES.GUARD_ROOM },
+      { x: 2, y: 2, type: ROOM_TYPES.SECURITY_ROOM },
+      { x: 7, y: 7, type: ROOM_TYPES.CROWN_ROOM },
+      { x: 3, y: 6, type: ROOM_TYPES.LOOT_ROOM },
+      { x: 6, y: 3, type: ROOM_TYPES.LOOT_ROOM },
+      { x: 5, y: 5, type: ROOM_TYPES.EXIT },
+    ];
+
+    // Create a map of special room locations for quick lookup
+    const specialRoomMap = new Map<string, string>();
+    specialRooms.forEach(room => {
+      specialRoomMap.set(`${room.x},${room.y}`, room.type);
+    });
+
+    // Generate all rooms in the grid
+    for (let gridY = 0; gridY < gridSize; gridY++) {
+      for (let gridX = 0; gridX < gridSize; gridX++) {
+        const room = new RoomSchema();
+        room.gridX = gridX;
+        room.gridY = gridY;
+
+        // Check if this is a special room
+        const key = `${gridX},${gridY}`;
+        room.roomType = specialRoomMap.get(key) || ROOM_TYPES.HALLWAY;
+
+        this.state.rooms.set(key, room);
+      }
+    }
+
+    console.log(`Generated ${this.state.rooms.size} rooms with ${specialRooms.length} special rooms`);
   }
 
   private setupMessageHandlers() {

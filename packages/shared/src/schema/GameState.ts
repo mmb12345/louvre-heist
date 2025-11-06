@@ -28,10 +28,17 @@ export class Objective extends Schema {
   @type('boolean') completed: boolean = false;
 }
 
+export class Room extends Schema {
+  @type('number') gridX!: number; // Grid position (0-9)
+  @type('number') gridY!: number; // Grid position (0-9)
+  @type('string') roomType!: string; // 'guard_room', 'security_room', etc.
+}
+
 export class GameState extends Schema {
   @type({ map: Player }) players = new MapSchema<Player>();
   @type({ map: Guard }) guards = new MapSchema<Guard>();
   @type({ map: Objective }) objectives = new MapSchema<Objective>();
+  @type({ map: Room }) rooms = new MapSchema<Room>();
   @type('number') timeRemaining!: number;
   @type('boolean') gameStarted: boolean = false;
   @type('boolean') gameOver: boolean = false;

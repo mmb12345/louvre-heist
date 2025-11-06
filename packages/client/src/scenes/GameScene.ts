@@ -1,7 +1,7 @@
 import Phaser from "phaser";
-import { GAME_CONFIG } from "@louvre-heist/shared";
+import { GAME_CONFIG, ROOM_TYPES } from "@louvre-heist/shared";
 import { ColyseusClient } from "../network/ColyseusClient";
-import type { Player } from "@louvre-heist/shared";
+import type { Player, Room } from "@louvre-heist/shared";
 import { generatePlayerName } from "../utils/nameGenerator";
 
 export class GameScene extends Phaser.Scene {
@@ -28,6 +28,7 @@ export class GameScene extends Phaser.Scene {
   private minimapContainer!: Phaser.GameObjects.Container;
   private minimapPlayerDot!: Phaser.GameObjects.Circle;
   private minimapOtherPlayerDots: Map<string, Phaser.GameObjects.Circle> = new Map();
+  private rooms: Map<string, Room> = new Map();
 
   constructor() {
     super({ key: "GameScene" });
@@ -219,6 +220,59 @@ export class GameScene extends Phaser.Scene {
     this.minimapContainer.add(wallGraphics);
   }
 
+  private redrawMinimapRoomTypes() {
+    const minimapSize = 200;
+    const roomSize = minimapSize / GAME_CONFIG.ROOMS_GRID;
+
+    // Remove any existing room type graphics
+    const existingRoomGraphics = this.minimapContainer.getByName("roomTypesGraphics");
+    if (existingRoomGraphics) {
+      existingRoomGraphics.destroy();
+    }
+
+    // Create graphics for room types
+    const roomGraphics = this.add.graphics();
+    roomGraphics.setName("roomTypesGraphics");
+
+    // Define colors for each room type
+    const roomColors: Record<string, number> = {
+      [ROOM_TYPES.GUARD_ROOM]: 0xFF0000,      // Red
+      [ROOM_TYPES.SECURITY_ROOM]: 0xFF6600,   // Orange
+      [ROOM_TYPES.CROWN_ROOM]: 0xFFD700,      // Gold
+      [ROOM_TYPES.LOOT_ROOM]: 0x00FF00,       // Green
+      [ROOM_TYPES.EXIT]: 0x00FFFF,            // Cyan
+      [ROOM_TYPES.HALLWAY]: 0x000000,         // Transparent/black
+    };
+
+    // Draw colored squares for special rooms
+    this.rooms.forEach((room, key) => {
+      if (room.roomType === ROOM_TYPES.HALLWAY) return; // Skip hallways
+
+      const color = roomColors[room.roomType];
+      if (color !== undefined) {
+        roomGraphics.fillStyle(color, 0.3); // 30% opacity
+        roomGraphics.fillRect(
+          room.gridX * roomSize + 1,
+          room.gridY * roomSize + 1,
+          roomSize - 2,
+          roomSize - 2
+        );
+
+        // Add a border for visibility
+        roomGraphics.lineStyle(1, color, 0.6);
+        roomGraphics.strokeRect(
+          room.gridX * roomSize + 1,
+          room.gridY * roomSize + 1,
+          roomSize - 2,
+          roomSize - 2
+        );
+      }
+    });
+
+    // Add to minimap container (insert before player dots)
+    this.minimapContainer.addAt(roomGraphics, 3); // Add after grid and walls
+  }
+
   private updateMinimap() {
     const minimapSize = 200;
     const roomSize = minimapSize / GAME_CONFIG.ROOMS_GRID;
@@ -300,6 +354,13 @@ export class GameScene extends Phaser.Scene {
       room.state.players.onRemove((player: Player, sessionId: string) => {
         console.log("Player left:", sessionId);
         this.removeOtherPlayer(sessionId);
+      });
+
+      // Listen for room data
+      room.state.rooms.onAdd((room: Room, key: string) => {
+        this.rooms.set(key, room);
+        // Redraw minimap with room types
+        this.redrawMinimapRoomTypes();
       });
     } catch (error) {
       console.error("Failed to connect to multiplayer:", error);
