@@ -126,6 +126,9 @@ export class GameRoom extends Room<GameState> {
 
       // Check for security room interaction (to unlock exit)
       this.checkSecurityRoomInteraction(player);
+
+      // Check for exit door interaction (to escape)
+      this.checkExitDoorInteraction(player);
     });
 
     this.onMessage('interact', (client) => {
@@ -510,26 +513,29 @@ export class GameRoom extends Room<GameState> {
       return;
     }
 
-    // Pick a random guard room
-    const randomGuardRoom = guardRooms[Math.floor(Math.random() * guardRooms.length)];
+    // Spawn a post-it in EVERY guard room
+    guardRooms.forEach((guardRoom, index) => {
+      // Calculate random position within the guard room
+      const roomCenterX = guardRoom.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+      const roomCenterY = guardRoom.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
 
-    // Calculate random position within the guard room
-    const roomCenterX = randomGuardRoom.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
-    const roomCenterY = randomGuardRoom.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+      // Add some randomness within the room (±2 tiles from center)
+      const randomOffsetX = (Math.random() - 0.5) * 4;
+      const randomOffsetY = (Math.random() - 0.5) * 4;
 
-    // Add some randomness within the room (±2 tiles from center)
-    const randomOffsetX = (Math.random() - 0.5) * 4;
-    const randomOffsetY = (Math.random() - 0.5) * 4;
+      const postit = new PostIt();
+      postit.id = `postit_${index}`;
+      postit.x = roomCenterX + randomOffsetX;
+      postit.y = roomCenterY + randomOffsetY;
+      postit.pickedUp = false;
+      postit.password = 'Louvre';
 
-    const postit = new PostIt();
-    postit.x = roomCenterX + randomOffsetX;
-    postit.y = roomCenterY + randomOffsetY;
-    postit.pickedUp = false;
-    postit.password = 'Louvre';
+      this.state.postits.set(postit.id, postit);
 
-    this.state.postit = postit;
+      console.log(`Post-it spawned at (${postit.x.toFixed(2)}, ${postit.y.toFixed(2)}) in guard room (${guardRoom.gridX}, ${guardRoom.gridY})`);
+    });
 
-    console.log(`Post-it spawned at (${postit.x.toFixed(2)}, ${postit.y.toFixed(2)}) in guard room (${randomGuardRoom.gridX}, ${randomGuardRoom.gridY})`);
+    console.log(`Spawned ${guardRooms.length} post-its in guard rooms`);
   }
 
   private initializeExitDoor() {
@@ -702,32 +708,37 @@ export class GameRoom extends Room<GameState> {
   }
 
   private checkPostItPickup(player: Player) {
-    // Check if post-it exists and hasn't been picked up
-    if (!this.state.postit || this.state.postit.pickedUp) return;
+    // Check each post-it to see if player is close enough to pick it up
+    this.state.postits.forEach((postit) => {
+      // Skip if already picked up
+      if (postit.pickedUp) return;
 
-    // Check distance to post-it
-    const distance = Math.sqrt(
-      Math.pow(player.x - this.state.postit.x, 2) +
-      Math.pow(player.y - this.state.postit.y, 2)
-    );
+      // Check distance to post-it
+      const distance = Math.sqrt(
+        Math.pow(player.x - postit.x, 2) +
+        Math.pow(player.y - postit.y, 2)
+      );
 
-    // If player is close enough to post-it (within 5 tiles), pick it up
-    if (distance < 5) {
-      this.state.postit.pickedUp = true;
+      // If player is close enough to post-it (within 5 tiles), pick it up
+      if (distance < 5) {
+        postit.pickedUp = true;
 
-      console.log(`Player ${player.name} picked up the post-it with password!`);
-      // Broadcast to all players so everyone can see the password
-      this.broadcast('postit_picked_up', {
-        playerId: player.id,
-        playerName: player.name,
-        password: this.state.postit.password
-      });
-    }
+        console.log(`Player ${player.name} picked up a post-it with password!`);
+        // Broadcast to all players so everyone can see the password
+        this.broadcast('postit_picked_up', {
+          playerId: player.id,
+          playerName: player.name,
+          password: postit.password,
+          postitId: postit.id
+        });
+      }
+    });
   }
 
   private checkSecurityRoomInteraction(player: Player) {
-    // Check if password has been picked up
-    if (!this.state.postit || !this.state.postit.pickedUp) return;
+    // Check if ANY password has been picked up
+    const anyPostitPickedUp = Array.from(this.state.postits.values()).some(postit => postit.pickedUp);
+    if (!anyPostitPickedUp) return;
 
     // Find the security room
     const securityRoom = Array.from(this.state.rooms.values()).find(
@@ -767,6 +778,35 @@ export class GameRoom extends Room<GameState> {
           playerName: player.name
         });
       }
+    }
+  }
+
+  private checkExitDoorInteraction(player: Player) {
+    // Check if exit door exists and is unlocked
+    if (!this.state.exitDoor || !this.state.exitDoor.unlocked) return;
+
+    // Check if the destroy footage objective is complete
+    const destroyFootageObjective = this.state.objectives.get('security');
+    if (!destroyFootageObjective || !destroyFootageObjective.completed) return;
+
+    // Check distance to exit door
+    const distance = Math.sqrt(
+      Math.pow(player.x - this.state.exitDoor.x, 2) +
+      Math.pow(player.y - this.state.exitDoor.y, 2)
+    );
+
+    // If player is close enough to the exit door (within 5 tiles), they escape
+    if (distance < 5) {
+      console.log(`Player ${player.name} escaped through the exit!`);
+
+      // Broadcast that the player escaped
+      this.broadcast('player_escaped', {
+        playerId: player.id,
+        playerName: player.name
+      });
+
+      // End the game with victory
+      this.endGame(true);
     }
   }
 

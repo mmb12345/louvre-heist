@@ -63,7 +63,7 @@ export class GameScene extends Phaser.Scene {
   private crownUIIndicator?: Phaser.GameObjects.Container;
 
   // Post-it
-  private postitSprite?: Phaser.GameObjects.Sprite;
+  private postitSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private passwordUIIndicator?: Phaser.GameObjects.Container;
 
   // Exit door
@@ -826,29 +826,28 @@ export class GameScene extends Phaser.Scene {
         }
       );
 
-      // Use a delayed check to wait for post-it to be initialized
-      this.time.delayedCall(1000, () => {
-        if (room.state.postit) {
-          console.log("Post-it detected in room state!", room.state.postit);
-          this.renderPostIt(room.state.postit);
+      // Listen for post-its being added to the game
+      room.state.postits.onAdd((postit: PostIt, id: string) => {
+        console.log(`Post-it ${id} added to room!`, postit);
+        this.renderPostIt(postit);
 
-          // Listen for post-it property changes
-          room.state.postit.onChange(() => {
-            console.log("Post-it changed!", room.state.postit);
-            if (room.state.postit) {
-              this.renderPostIt(room.state.postit);
-            }
-          });
-        } else {
-          console.log("No post-it in room state yet");
-        }
+        // Listen for changes to this post-it
+        postit.onChange(() => {
+          console.log(`Post-it ${id} changed!`);
+          this.renderPostIt(postit);
+        });
+      });
+
+      // Render existing post-its
+      room.state.postits.forEach((postit: PostIt) => {
+        this.renderPostIt(postit);
       });
 
       // Listen for post-it picked up event
       room.onMessage(
         "postit_picked_up",
-        (data: { playerId: string; playerName: string; password: string }) => {
-          console.log(`${data.playerName} picked up the post-it!`);
+        (data: { playerId: string; playerName: string; password: string; postitId: string }) => {
+          console.log(`${data.playerName} picked up a post-it!`);
           this.showPasswordUI(data.password);
         }
       );
@@ -871,6 +870,15 @@ export class GameScene extends Phaser.Scene {
           console.log(`${data.playerName} unlocked the exit!`);
           // Show a message or update UI
           this.showExitUnlockedMessage(data.playerName);
+        }
+      );
+
+      // Listen for player escaped event
+      room.onMessage(
+        "player_escaped",
+        (data: { playerId: string; playerName: string }) => {
+          console.log(`${data.playerName} escaped through the exit!`);
+          this.showPlayerEscapedMessage(data.playerName);
         }
       );
 
@@ -1246,27 +1254,30 @@ export class GameScene extends Phaser.Scene {
   private renderPostIt(postit: PostIt) {
     if (postit.pickedUp) {
       // Post-it has been picked up, hide the world sprite
-      if (this.postitSprite) {
-        this.postitSprite.setVisible(false);
+      const sprite = this.postitSprites.get(postit.id);
+      if (sprite) {
+        sprite.setVisible(false);
       }
     } else {
       // Post-it is in the world, show it
-      if (!this.postitSprite) {
+      let sprite = this.postitSprites.get(postit.id);
+      if (!sprite) {
         // Create post-it sprite
-        this.postitSprite = this.add.sprite(
+        sprite = this.add.sprite(
           postit.x * GAME_CONFIG.TILE_SIZE,
           postit.y * GAME_CONFIG.TILE_SIZE,
           "postit"
         );
-        this.postitSprite.setDepth(5); // Below player but above floor
-        this.postitSprite.setScale(1); // Normal size
+        sprite.setDepth(5); // Below player but above floor
+        sprite.setScale(1); // Normal size
+        this.postitSprites.set(postit.id, sprite);
       } else {
         // Update position and make visible
-        this.postitSprite.setPosition(
+        sprite.setPosition(
           postit.x * GAME_CONFIG.TILE_SIZE,
           postit.y * GAME_CONFIG.TILE_SIZE
         );
-        this.postitSprite.setVisible(true);
+        sprite.setVisible(true);
       }
     }
   }
@@ -1517,6 +1528,67 @@ export class GameScene extends Phaser.Scene {
         },
       });
     });
+  }
+
+  private showPlayerEscapedMessage(playerName: string) {
+    // Create a temporary message in the center of the screen
+    const centerX = this.cameras.main.width / 2;
+    const centerY = this.cameras.main.height / 2;
+
+    const messageContainer = this.add.container(centerX, centerY);
+    messageContainer.setScrollFactor(0);
+    messageContainer.setDepth(2000);
+
+    // Background with golden glow
+    const bg = this.add.rectangle(0, 0, 450, 120, 0x000000, 0.95);
+    messageContainer.add(bg);
+
+    // Border glow
+    const border = this.add.rectangle(0, 0, 450, 120, 0xFFD700, 0);
+    border.setStrokeStyle(3, 0xFFD700);
+    messageContainer.add(border);
+
+    // Message text
+    const messageText = this.add.text(
+      0,
+      -15,
+      playerName === this.sessionId ? "🎉 YOU ESCAPED! 🎉" : `🎉 ${playerName} ESCAPED! 🎉`,
+      {
+        fontSize: "28px",
+        color: "#FFD700",
+        fontStyle: "bold",
+        align: "center",
+      }
+    );
+    messageText.setOrigin(0.5);
+    messageContainer.add(messageText);
+
+    // Subtitle
+    const subtitle = this.add.text(
+      0,
+      20,
+      playerName === this.sessionId
+        ? "You successfully completed the heist!"
+        : "The heist was successful!",
+      {
+        fontSize: "18px",
+        color: "#00FF00",
+        align: "center",
+      }
+    );
+    subtitle.setOrigin(0.5);
+    messageContainer.add(subtitle);
+
+    // Animate in with a scale effect
+    messageContainer.setScale(0);
+    this.tweens.add({
+      targets: messageContainer,
+      scale: 1,
+      duration: 300,
+      ease: 'Back.easeOut',
+    });
+
+    // Keep the message visible (game will end soon anyway)
   }
 
   private updatePlayerTarget(sessionId: string, player: Player) {
