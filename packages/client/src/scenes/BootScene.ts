@@ -6,22 +6,16 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    // Create simple geometric shapes for our game
-    this.createPlayerTexture();
+    // Load custom player sprite
+    this.load.image('player', '/assets/pinkStill.svg');
+
+    // Create tile texture
     this.createTileTexture();
   }
 
   create() {
     // Start game immediately
     this.scene.start('GameScene');
-  }
-
-  private createPlayerTexture() {
-    const graphics = this.add.graphics();
-    graphics.fillStyle(0x00ff00, 1);
-    graphics.fillCircle(16, 16, 12);
-    graphics.generateTexture('player', 32, 32);
-    graphics.destroy();
   }
 
   private createTileTexture() {
