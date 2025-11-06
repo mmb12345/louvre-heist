@@ -30,6 +30,15 @@ export class GameScene extends Phaser.Scene {
   private minimapOtherPlayerDots: Map<string, Phaser.GameObjects.Circle> = new Map();
   private rooms: Map<string, Room> = new Map();
 
+  // Console
+  private consoleVisible: boolean = false;
+  private consoleContainer!: Phaser.GameObjects.Container;
+  private consoleInput!: Phaser.GameObjects.Text;
+  private consoleOutput!: Phaser.GameObjects.Text;
+  private consoleInputBuffer: string = "";
+  private consoleHistory: string[] = [];
+  private consoleHistoryIndex: number = -1;
+
   constructor() {
     super({ key: "GameScene" });
   }
@@ -105,6 +114,12 @@ export class GameScene extends Phaser.Scene {
 
     // Create minimap
     this.createMinimap();
+
+    // Create console
+    this.createConsole();
+
+    // Setup console keyboard handler
+    this.setupConsoleInput();
 
     // Connect to multiplayer server
     await this.setupMultiplayer();
@@ -316,6 +331,205 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  private createConsole() {
+    const consoleWidth = 600;
+    const consoleHeight = 400;
+    const consoleX = (this.cameras.main.width - consoleWidth) / 2;
+    const consoleY = 100;
+
+    // Create console container
+    this.consoleContainer = this.add.container(consoleX, consoleY);
+    this.consoleContainer.setScrollFactor(0);
+    this.consoleContainer.setDepth(200); // Above everything
+    this.consoleContainer.setVisible(false);
+
+    // Background
+    const bg = this.add.rectangle(0, 0, consoleWidth, consoleHeight, 0x000000, 0.9);
+    bg.setOrigin(0);
+    this.consoleContainer.add(bg);
+
+    // Border
+    const border = this.add.rectangle(0, 0, consoleWidth, consoleHeight);
+    border.setOrigin(0);
+    border.setStrokeStyle(2, 0x00ff00, 1);
+    this.consoleContainer.add(border);
+
+    // Title
+    const title = this.add.text(10, 10, "DEVELOPER CONSOLE (` or F1 to toggle)", {
+      fontSize: "16px",
+      color: "#00ff00",
+      fontStyle: "bold",
+    });
+    this.consoleContainer.add(title);
+
+    // Output area
+    this.consoleOutput = this.add.text(10, 40, "", {
+      fontSize: "14px",
+      color: "#ffffff",
+      fontFamily: "monospace",
+      wordWrap: { width: consoleWidth - 20 },
+    });
+    this.consoleContainer.add(this.consoleOutput);
+
+    // Input prompt
+    const inputPrompt = this.add.text(10, consoleHeight - 30, ">", {
+      fontSize: "14px",
+      color: "#00ff00",
+      fontFamily: "monospace",
+    });
+    this.consoleContainer.add(inputPrompt);
+
+    // Input text
+    this.consoleInput = this.add.text(25, consoleHeight - 30, "", {
+      fontSize: "14px",
+      color: "#ffffff",
+      fontFamily: "monospace",
+    });
+    this.consoleContainer.add(this.consoleInput);
+
+    // Cursor
+    const cursor = this.add.text(0, 0, "_", {
+      fontSize: "14px",
+      color: "#00ff00",
+      fontFamily: "monospace",
+    });
+    this.consoleContainer.add(cursor);
+
+    // Animate cursor
+    this.tweens.add({
+      targets: cursor,
+      alpha: 0,
+      duration: 500,
+      yoyo: true,
+      repeat: -1,
+    });
+
+    // Update cursor position
+    this.time.addEvent({
+      delay: 50,
+      callback: () => {
+        if (this.consoleVisible) {
+          const inputWidth = this.consoleInput.width;
+          cursor.setPosition(25 + inputWidth, consoleHeight - 30);
+        }
+      },
+      loop: true,
+    });
+  }
+
+  private setupConsoleInput() {
+    // Listen for all keyboard input
+    this.input.keyboard!.on("keydown", (event: KeyboardEvent) => {
+      // Toggle console with tilde/backtick or F1 key
+      if (event.key === "`" || event.key === "~" || event.code === "Backquote" || event.key === "F1") {
+        event.preventDefault();
+        this.consoleVisible = !this.consoleVisible;
+        this.consoleContainer.setVisible(this.consoleVisible);
+
+        if (this.consoleVisible) {
+          // Focus on console
+          this.consoleInputBuffer = "";
+          this.consoleInput.setText("");
+        }
+        return;
+      }
+
+      // Handle console input only when visible
+      if (!this.consoleVisible) return;
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        // Execute command
+        const command = this.consoleInputBuffer.trim();
+        if (command) {
+          this.executeCommand(command);
+          this.consoleHistory.push(command);
+          this.consoleHistoryIndex = this.consoleHistory.length;
+        }
+        this.consoleInputBuffer = "";
+        this.consoleInput.setText("");
+      } else if (event.key === "Backspace") {
+        event.preventDefault();
+        this.consoleInputBuffer = this.consoleInputBuffer.slice(0, -1);
+        this.consoleInput.setText(this.consoleInputBuffer);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        // Navigate history up
+        if (this.consoleHistoryIndex > 0) {
+          this.consoleHistoryIndex--;
+          this.consoleInputBuffer = this.consoleHistory[this.consoleHistoryIndex];
+          this.consoleInput.setText(this.consoleInputBuffer);
+        }
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        // Navigate history down
+        if (this.consoleHistoryIndex < this.consoleHistory.length - 1) {
+          this.consoleHistoryIndex++;
+          this.consoleInputBuffer = this.consoleHistory[this.consoleHistoryIndex];
+          this.consoleInput.setText(this.consoleInputBuffer);
+        } else {
+          this.consoleHistoryIndex = this.consoleHistory.length;
+          this.consoleInputBuffer = "";
+          this.consoleInput.setText("");
+        }
+      } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        // Add character to input
+        this.consoleInputBuffer += event.key;
+        this.consoleInput.setText(this.consoleInputBuffer);
+      }
+    });
+  }
+
+  private executeCommand(command: string) {
+    // Add command to output
+    this.addConsoleOutput(`> ${command}`);
+
+    // Parse command
+    const parts = command.split(" ");
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    // Handle local commands first
+    if (cmd === "help") {
+      this.addConsoleOutput("Console: Press ` (tilde) or F1 to toggle");
+      this.addConsoleOutput("");
+      this.addConsoleOutput("Available commands:");
+      this.addConsoleOutput("Local:");
+      this.addConsoleOutput("  help - Show this help message");
+      this.addConsoleOutput("  clear - Clear console output");
+      this.addConsoleOutput("Server:");
+      this.addConsoleOutput("  teleport <x> <y> - Teleport to coordinates");
+      this.addConsoleOutput("  players - List all connected players");
+      this.addConsoleOutput("  rooms - List special room locations");
+      this.addConsoleOutput("  godmode - Enable god mode (can't be caught)");
+      this.addConsoleOutput("  objective [type] - List or complete objectives");
+      this.addConsoleOutput("  time [seconds] - Get or set remaining time");
+    } else if (cmd === "clear") {
+      this.consoleOutput.setText("");
+    } else {
+      // Send to server
+      if (this.colyseusClient && this.colyseusClient.room) {
+        this.colyseusClient.room.send("console_command", { command: cmd, args });
+      } else {
+        this.addConsoleOutput("Error: Not connected to server");
+      }
+    }
+  }
+
+  private addConsoleOutput(text: string) {
+    const currentOutput = this.consoleOutput.text;
+    const lines = currentOutput.split("\n");
+
+    // Keep last 15 lines
+    if (lines.length >= 15) {
+      lines.shift();
+    }
+
+    lines.push(text);
+    this.consoleOutput.setText(lines.join("\n"));
+  }
+
   private async setupMultiplayer() {
     try {
       this.colyseusClient = new ColyseusClient();
@@ -354,6 +568,11 @@ export class GameScene extends Phaser.Scene {
       room.state.players.onRemove((player: Player, sessionId: string) => {
         console.log("Player left:", sessionId);
         this.removeOtherPlayer(sessionId);
+      });
+
+      // Listen for console command responses
+      room.onMessage("console_response", (data: { output: string }) => {
+        this.addConsoleOutput(data.output);
       });
 
       // Listen for room data
@@ -665,74 +884,77 @@ export class GameScene extends Phaser.Scene {
     let velocityX = 0;
     let velocityY = 0;
 
-    // Determine velocity from key presses
-    if (this.wasdKeys.A.isDown) {
-      velocityX = -GAME_CONFIG.PLAYER_SPEED;
-    } else if (this.wasdKeys.D.isDown) {
-      velocityX = GAME_CONFIG.PLAYER_SPEED;
-    }
-
-    if (this.wasdKeys.W.isDown) {
-      velocityY = -GAME_CONFIG.PLAYER_SPEED;
-    } else if (this.wasdKeys.S.isDown) {
-      velocityY = GAME_CONFIG.PLAYER_SPEED;
-    }
-
-    // Set rotation based on direction (check diagonals first)
-    const isMoving = velocityX !== 0 || velocityY !== 0;
-
-    if (isMoving) {
-      if (velocityY < 0 && velocityX > 0) {
-        // Up-right (W+D)
-        this.currentAngle = 225;
-      } else if (velocityY < 0 && velocityX < 0) {
-        // Up-left (W+A)
-        this.currentAngle = 135;
-      } else if (velocityY > 0 && velocityX > 0) {
-        // Down-right (S+D)
-        this.currentAngle = 315;
-      } else if (velocityY > 0 && velocityX < 0) {
-        // Down-left (S+A)
-        this.currentAngle = 45;
-      } else if (velocityY < 0) {
-        // Up (W)
-        this.currentAngle = 180;
-      } else if (velocityY > 0) {
-        // Down (S)
-        this.currentAngle = 0;
-      } else if (velocityX < 0) {
-        // Left (A)
-        this.currentAngle = 90;
-      } else if (velocityX > 0) {
-        // Right (D)
-        this.currentAngle = 270;
+    // Skip player input if console is visible
+    if (!this.consoleVisible) {
+      // Determine velocity from key presses
+      if (this.wasdKeys.A.isDown) {
+        velocityX = -GAME_CONFIG.PLAYER_SPEED;
+      } else if (this.wasdKeys.D.isDown) {
+        velocityX = GAME_CONFIG.PLAYER_SPEED;
       }
 
-      this.player.setAngle(this.currentAngle);
-
-      // Play walk animation if not already playing
-      if (!this.player.anims.isPlaying) {
-        this.player.play("walk");
+      if (this.wasdKeys.W.isDown) {
+        velocityY = -GAME_CONFIG.PLAYER_SPEED;
+      } else if (this.wasdKeys.S.isDown) {
+        velocityY = GAME_CONFIG.PLAYER_SPEED;
       }
-    } else {
-      // Stop animation and show still sprite, maintaining current angle
-      this.player.stop();
-      this.player.setTexture(`${this.playerColor}Still`);
-      this.player.setAngle(this.currentAngle);
+
+      // Set rotation based on direction (check diagonals first)
+      const isMoving = velocityX !== 0 || velocityY !== 0;
+
+      if (isMoving) {
+        if (velocityY < 0 && velocityX > 0) {
+          // Up-right (W+D)
+          this.currentAngle = 225;
+        } else if (velocityY < 0 && velocityX < 0) {
+          // Up-left (W+A)
+          this.currentAngle = 135;
+        } else if (velocityY > 0 && velocityX > 0) {
+          // Down-right (S+D)
+          this.currentAngle = 315;
+        } else if (velocityY > 0 && velocityX < 0) {
+          // Down-left (S+A)
+          this.currentAngle = 45;
+        } else if (velocityY < 0) {
+          // Up (W)
+          this.currentAngle = 180;
+        } else if (velocityY > 0) {
+          // Down (S)
+          this.currentAngle = 0;
+        } else if (velocityX < 0) {
+          // Left (A)
+          this.currentAngle = 90;
+        } else if (velocityX > 0) {
+          // Right (D)
+          this.currentAngle = 270;
+        }
+
+        this.player.setAngle(this.currentAngle);
+
+        // Play walk animation if not already playing
+        if (!this.player.anims.isPlaying) {
+          this.player.play("walk");
+        }
+      } else {
+        // Stop animation and show still sprite, maintaining current angle
+        this.player.stop();
+        this.player.setTexture(`${this.playerColor}Still`);
+        this.player.setAngle(this.currentAngle);
+      }
+
+      // Send position to server (throttled)
+      if (this.colyseusClient && this.colyseusClient.room) {
+        if (time - this.lastUpdateTime > this.updateThrottle) {
+          // Convert pixel position to tile position for server
+          const tileX = this.player.x / GAME_CONFIG.TILE_SIZE;
+          const tileY = this.player.y / GAME_CONFIG.TILE_SIZE;
+          this.colyseusClient.sendMove(tileX, tileY, this.currentAngle, isMoving);
+          this.lastUpdateTime = time;
+        }
+      }
     }
 
     // Update player velocity (physics handles collision)
     this.player.setVelocity(velocityX * 60, velocityY * 60);
-
-    // Send position to server (throttled)
-    if (this.colyseusClient && this.colyseusClient.room) {
-      if (time - this.lastUpdateTime > this.updateThrottle) {
-        // Convert pixel position to tile position for server
-        const tileX = this.player.x / GAME_CONFIG.TILE_SIZE;
-        const tileY = this.player.y / GAME_CONFIG.TILE_SIZE;
-        this.colyseusClient.sendMove(tileX, tileY, this.currentAngle, isMoving);
-        this.lastUpdateTime = time;
-      }
-    }
   }
 }
