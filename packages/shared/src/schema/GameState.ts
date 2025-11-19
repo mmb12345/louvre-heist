@@ -9,6 +9,7 @@ export class Player extends Schema {
   @type('number') angle: number = 0; // Player facing direction
   @type('boolean') isMoving: boolean = false;
   @type('boolean') caught: boolean = false;
+  @type('boolean') escaped: boolean = false;
   @type('boolean') hasPassword: boolean = false;
 }
 

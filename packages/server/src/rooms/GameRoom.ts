@@ -53,21 +53,14 @@ export class GameRoom extends Room<GameState> {
     // Randomly generate special room locations
     const specialRooms = [];
 
-    // 4 Guard rooms (spread in corners/edges)
-    specialRooms.push({ ...getRandomPosition(0, 3, 0, 3), type: ROOM_TYPES.GUARD_ROOM }); // Top-left quadrant
-    specialRooms.push({ ...getRandomPosition(6, 9, 0, 3), type: ROOM_TYPES.GUARD_ROOM }); // Top-right quadrant
-    specialRooms.push({ ...getRandomPosition(0, 3, 6, 9), type: ROOM_TYPES.GUARD_ROOM }); // Bottom-left quadrant
-    specialRooms.push({ ...getRandomPosition(6, 9, 6, 9), type: ROOM_TYPES.GUARD_ROOM }); // Bottom-right quadrant
+    // 1 Guard room (center area, randomly placed)
+    specialRooms.push({ ...getRandomPosition(1, 8, 1, 8), type: ROOM_TYPES.GUARD_ROOM });
 
     // 1 Security room (avoid edges)
     specialRooms.push({ ...getRandomPosition(1, 8, 1, 8), type: ROOM_TYPES.SECURITY_ROOM });
 
     // 1 Crown room (avoid edges)
     specialRooms.push({ ...getRandomPosition(1, 8, 1, 8), type: ROOM_TYPES.CROWN_ROOM });
-
-    // 2 Loot rooms (anywhere except edges)
-    specialRooms.push({ ...getRandomPosition(1, 8, 1, 8), type: ROOM_TYPES.LOOT_ROOM });
-    specialRooms.push({ ...getRandomPosition(1, 8, 1, 8), type: ROOM_TYPES.LOOT_ROOM });
 
     // 1 Exit (prefer center area for balance)
     specialRooms.push({ ...getRandomPosition(3, 6, 3, 6), type: ROOM_TYPES.EXIT });
@@ -539,36 +532,29 @@ export class GameRoom extends Room<GameState> {
   }
 
   private initializeExitDoor() {
-    // Place exit door on a random outside wall
-    const exitDoor = new ExitDoor();
+    // Find the EXIT room
+    const exitRoom = Array.from(this.state.rooms.values()).find(
+      room => room.roomType === ROOM_TYPES.EXIT
+    );
 
-    // Choose a random wall: 0=top, 1=right, 2=bottom, 3=left
-    const wall = Math.floor(Math.random() * 4);
-    const mapSize = GAME_CONFIG.MAP_WIDTH;
-
-    switch (wall) {
-      case 0: // Top wall
-        exitDoor.x = Math.floor(Math.random() * mapSize);
-        exitDoor.y = 0;
-        break;
-      case 1: // Right wall
-        exitDoor.x = mapSize - 1;
-        exitDoor.y = Math.floor(Math.random() * mapSize);
-        break;
-      case 2: // Bottom wall
-        exitDoor.x = Math.floor(Math.random() * mapSize);
-        exitDoor.y = mapSize - 1;
-        break;
-      case 3: // Left wall
-        exitDoor.x = 0;
-        exitDoor.y = Math.floor(Math.random() * mapSize);
-        break;
+    if (!exitRoom) {
+      console.error('Exit room not found!');
+      return;
     }
 
+    // Place exit door in the center of the EXIT room
+    const exitDoor = new ExitDoor();
+
+    // Calculate center position of the exit room
+    const roomCenterX = exitRoom.gridX * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+    const roomCenterY = exitRoom.gridY * GAME_CONFIG.ROOM_SIZE + GAME_CONFIG.ROOM_SIZE / 2;
+
+    exitDoor.x = roomCenterX;
+    exitDoor.y = roomCenterY;
     exitDoor.unlocked = false;
     this.state.exitDoor = exitDoor;
 
-    console.log(`Exit door spawned at (${exitDoor.x}, ${exitDoor.y})`);
+    console.log(`Exit door spawned at (${exitDoor.x}, ${exitDoor.y}) in exit room (${exitRoom.gridX}, ${exitRoom.gridY})`);
   }
 
   onJoin(client: Client, options: any) {
@@ -676,11 +662,8 @@ export class GameRoom extends Room<GameState> {
 
           console.log(`Guard ${guard.id} shot player ${player.name} at distance ${distToPlayer.toFixed(2)}`);
 
-          // Check if all players are caught
-          const allCaught = Array.from(this.state.players.values()).every(p => p.caught);
-          if (allCaught) {
-            this.endGame(false);
-          }
+          // Check if all players have either escaped or been caught
+          this.checkAllPlayersAccountedFor();
         }
       });
     });
@@ -723,6 +706,9 @@ export class GameRoom extends Room<GameState> {
 
       console.log(`Player ${player.name} picked up the crown!`);
       this.broadcast('crown_picked_up', { playerId: player.id, playerName: player.name });
+
+      // Check if all objectives are now complete and unlock exit door if so
+      this.checkAndUnlockExitDoor(player);
     }
   }
 
@@ -750,6 +736,9 @@ export class GameRoom extends Room<GameState> {
           password: postit.password,
           postitId: postit.id
         });
+
+        // Check if all objectives are now complete and unlock exit door if so
+        this.checkAndUnlockExitDoor(player);
       }
     });
   }
@@ -788,25 +777,50 @@ export class GameRoom extends Room<GameState> {
         this.broadcast('objective_completed', { type: OBJECTIVES.DESTROY_FOOTAGE });
       }
 
-      // Unlock the exit door if not already unlocked
-      if (this.state.exitDoor && !this.state.exitDoor.unlocked) {
-        this.state.exitDoor.unlocked = true;
-        console.log(`Player ${player.name} unlocked the exit door!`);
-        this.broadcast('exit_unlocked', {
-          playerId: player.id,
-          playerName: player.name
-        });
-      }
+      // Check if all objectives are now complete and unlock exit door if so
+      this.checkAndUnlockExitDoor(player);
+    }
+  }
+
+  private checkAndUnlockExitDoor(player: Player) {
+    // Exit early if door doesn't exist or is already unlocked
+    if (!this.state.exitDoor || this.state.exitDoor.unlocked) return;
+
+    // Check if crown has been picked up
+    const crownPickedUp = this.state.crown && this.state.crown.pickedUp;
+
+    // Check if any password has been found
+    const passwordFound = Array.from(this.state.postits.values()).some(postit => postit.pickedUp);
+
+    // Check if footage is destroyed
+    const destroyFootageObjective = this.state.objectives.get('security');
+    const footageDestroyed = destroyFootageObjective && destroyFootageObjective.completed;
+
+    // Only unlock if all three objectives are complete
+    if (crownPickedUp && passwordFound && footageDestroyed) {
+      this.state.exitDoor.unlocked = true;
+      console.log(`Player ${player.name} unlocked the exit door! All objectives complete.`);
+      this.broadcast('exit_unlocked', {
+        playerId: player.id,
+        playerName: player.name
+      });
     }
   }
 
   private checkExitDoorInteraction(player: Player) {
+    // Skip if player already escaped
+    if (player.escaped) return;
+
     // Check if exit door exists and is unlocked
     if (!this.state.exitDoor || !this.state.exitDoor.unlocked) return;
 
-    // Check if the destroy footage objective is complete
+    // Double-check all objectives are complete (belt and suspenders)
+    const crownPickedUp = this.state.crown && this.state.crown.pickedUp;
+    const passwordFound = Array.from(this.state.postits.values()).some(postit => postit.pickedUp);
     const destroyFootageObjective = this.state.objectives.get('security');
-    if (!destroyFootageObjective || !destroyFootageObjective.completed) return;
+    const footageDestroyed = destroyFootageObjective && destroyFootageObjective.completed;
+
+    if (!crownPickedUp || !passwordFound || !footageDestroyed) return;
 
     // Check distance to exit door
     const distance = Math.sqrt(
@@ -814,8 +828,9 @@ export class GameRoom extends Room<GameState> {
       Math.pow(player.y - this.state.exitDoor.y, 2)
     );
 
-    // If player is close enough to the exit door (within 5 tiles), they escape
-    if (distance < 5) {
+    // If player is close enough to the exit door (within 10 tiles), they escape
+    if (distance < 10) {
+      player.escaped = true;
       console.log(`Player ${player.name} escaped through the exit!`);
 
       // Broadcast that the player escaped
@@ -824,8 +839,24 @@ export class GameRoom extends Room<GameState> {
         playerName: player.name
       });
 
-      // End the game with victory
-      this.endGame(true);
+      // Check if all players have either escaped or been caught
+      this.checkAllPlayersAccountedFor();
+    }
+  }
+
+  private checkAllPlayersAccountedFor() {
+    const players = Array.from(this.state.players.values());
+
+    // Check if all players are either escaped or caught
+    const allAccountedFor = players.every(p => p.escaped || p.caught);
+
+    if (allAccountedFor) {
+      // Determine victory or defeat
+      // Victory if at least one player escaped
+      const anyoneEscaped = players.some(p => p.escaped);
+
+      console.log(`All players accounted for. ${anyoneEscaped ? 'Victory' : 'Defeat'}`);
+      this.endGame(anyoneEscaped);
     }
   }
 
@@ -855,10 +886,13 @@ export class GameRoom extends Room<GameState> {
 
     this.broadcast('game_over', { victory });
 
-    // Auto-disconnect after 10 seconds
+    // Auto-disconnect after a delay
+    // Victory: 7 seconds (gives time for win screen + return to menu)
+    // Loss: 10 seconds (players stay on loss screen)
+    const disconnectDelay = victory ? 7000 : 10000;
     setTimeout(() => {
       this.disconnect();
-    }, 10000);
+    }, disconnectDelay);
   }
 
   onLeave(client: Client, consented: boolean) {

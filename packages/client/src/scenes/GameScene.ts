@@ -73,6 +73,11 @@ export class GameScene extends Phaser.Scene {
   // Footage objective
   private footageUIIndicator?: Phaser.GameObjects.Container;
 
+  // Objective tracking for minimap
+  private crownPickedUp: boolean = false;
+  private passwordFound: boolean = false;
+  private footageDestroyed: boolean = false;
+
   // Console
   private consoleVisible: boolean = false;
   private consoleContainer!: Phaser.GameObjects.Container;
@@ -356,7 +361,6 @@ export class GameScene extends Phaser.Scene {
       [ROOM_TYPES.GUARD_ROOM]: 0xff0000, // Red
       [ROOM_TYPES.SECURITY_ROOM]: 0xff6600, // Orange
       [ROOM_TYPES.CROWN_ROOM]: 0xffd700, // Gold
-      [ROOM_TYPES.LOOT_ROOM]: 0x00ff00, // Green
       [ROOM_TYPES.EXIT]: 0x00ffff, // Cyan
       [ROOM_TYPES.HALLWAY]: 0x000000, // Transparent/black
     };
@@ -364,6 +368,14 @@ export class GameScene extends Phaser.Scene {
     // Draw colored squares for special rooms
     this.rooms.forEach((room, key) => {
       if (room.roomType === ROOM_TYPES.HALLWAY) return; // Skip hallways
+
+      // Skip exit room if not all objectives are complete
+      if (room.roomType === ROOM_TYPES.EXIT) {
+        const allObjectivesComplete = this.crownPickedUp && this.passwordFound && this.footageDestroyed;
+        if (!allObjectivesComplete) {
+          return; // Don't show exit on minimap yet
+        }
+      }
 
       const color = roomColors[room.roomType];
       if (color !== undefined) {
@@ -823,6 +835,8 @@ export class GameScene extends Phaser.Scene {
         (data: { playerId: string; playerName: string }) => {
           console.log(`${data.playerName} picked up the crown!`);
           this.showCrownPickupMessage(data.playerName);
+          this.crownPickedUp = true;
+          this.redrawMinimapRoomTypes(); // Redraw minimap to potentially show exit
         }
       );
 
@@ -849,6 +863,8 @@ export class GameScene extends Phaser.Scene {
         (data: { playerId: string; playerName: string; password: string; postitId: string }) => {
           console.log(`${data.playerName} picked up a post-it!`);
           this.showPasswordUI(data.password);
+          this.passwordFound = true;
+          this.redrawMinimapRoomTypes(); // Redraw minimap to potentially show exit
         }
       );
 
@@ -875,6 +891,9 @@ export class GameScene extends Phaser.Scene {
           if (room.state.exitDoor) {
             this.renderExitDoor(room.state.exitDoor);
           }
+
+          this.footageDestroyed = true;
+          this.redrawMinimapRoomTypes(); // Redraw minimap to potentially show exit
         }
       );
 
@@ -899,7 +918,7 @@ export class GameScene extends Phaser.Scene {
         "player_escaped",
         (data: { playerId: string; playerName: string }) => {
           console.log(`${data.playerName} escaped through the exit!`);
-          this.showPlayerEscapedMessage(data.playerName);
+          this.showPlayerEscapedMessage(data.playerId, data.playerName);
         }
       );
 
@@ -923,8 +942,10 @@ export class GameScene extends Phaser.Scene {
       // Listen for game over event
       room.onMessage("game_over", (data: { victory: boolean }) => {
         console.log(`Game over! Victory: ${data.victory}`);
-        // Transition to win or loss scene after a short delay
-        this.time.delayedCall(2000, () => {
+        // Transition to win or loss scene after a delay
+        // Victory: wait 5 seconds, Loss: wait 2 seconds
+        const delay = data.victory ? 5000 : 2000;
+        this.time.delayedCall(delay, () => {
           if (data.victory) {
             this.scene.start("WinScene");
           } else {
@@ -1465,69 +1486,47 @@ export class GameScene extends Phaser.Scene {
       this.exitDoorUnlockedText.destroy();
     }
 
-    // Only render the blue room if the exit is unlocked
+    // Only render the door if the exit is unlocked (all objectives complete)
     if (!exitDoor.unlocked) {
       return;
     }
 
-    // Create graphics for exit door (blue room on edge of map)
+    // Create graphics for exit door in the center of the EXIT room
     this.exitDoorGraphics = this.add.graphics();
     const tileSize = GAME_CONFIG.TILE_SIZE;
 
-    // Determine which wall the exit is on
-    const isOnTopWall = exitDoor.y === 0;
-    const isOnBottomWall = exitDoor.y === GAME_CONFIG.MAP_HEIGHT - 1;
-    const isOnLeftWall = exitDoor.x === 0;
-    const isOnRightWall = exitDoor.x === GAME_CONFIG.MAP_WIDTH - 1;
+    // Convert tile coordinates to pixel coordinates
+    const centerX = exitDoor.x * tileSize;
+    const centerY = exitDoor.y * tileSize;
 
-    // Draw blue room (5 tiles wide, 2 tiles deep into the wall)
-    const roomWidth = tileSize * 5;
-    const roomDepth = tileSize * 2;
+    // Draw a large blue glowing door (3x3 tiles)
+    const doorSize = tileSize * 3;
+    this.exitDoorGraphics.fillStyle(0x00ffff, 0.8); // Cyan color
+    this.exitDoorGraphics.fillRect(
+      centerX - doorSize / 2,
+      centerY - doorSize / 2,
+      doorSize,
+      doorSize
+    );
 
-    // Show blue room (0x3a7ebf is a nice blue color)
-    this.exitDoorGraphics.fillStyle(0x3a7ebf, 0.6);
-
-    let roomX, roomY, centerX, centerY;
-
-    if (isOnTopWall) {
-      // Room extends upward from top wall
-      roomX = exitDoor.x * tileSize - roomWidth / 2;
-      roomY = exitDoor.y * tileSize - roomDepth;
-      centerX = exitDoor.x * tileSize;
-      centerY = exitDoor.y * tileSize - roomDepth / 2;
-      this.exitDoorGraphics.fillRect(roomX, roomY, roomWidth, roomDepth);
-    } else if (isOnBottomWall) {
-      // Room extends downward from bottom wall
-      roomX = exitDoor.x * tileSize - roomWidth / 2;
-      roomY = exitDoor.y * tileSize + tileSize;
-      centerX = exitDoor.x * tileSize;
-      centerY = exitDoor.y * tileSize + roomDepth / 2 + tileSize;
-      this.exitDoorGraphics.fillRect(roomX, roomY, roomWidth, roomDepth);
-    } else if (isOnLeftWall) {
-      // Room extends leftward from left wall
-      roomX = exitDoor.x * tileSize - roomDepth;
-      roomY = exitDoor.y * tileSize - roomWidth / 2;
-      centerX = exitDoor.x * tileSize - roomDepth / 2;
-      centerY = exitDoor.y * tileSize;
-      this.exitDoorGraphics.fillRect(roomX, roomY, roomDepth, roomWidth);
-    } else {
-      // Room extends rightward from right wall
-      roomX = exitDoor.x * tileSize + tileSize;
-      roomY = exitDoor.y * tileSize - roomWidth / 2;
-      centerX = exitDoor.x * tileSize + roomDepth / 2 + tileSize;
-      centerY = exitDoor.y * tileSize;
-      this.exitDoorGraphics.fillRect(roomX, roomY, roomDepth, roomWidth);
-    }
+    // Add a bright border
+    this.exitDoorGraphics.lineStyle(4, 0x00ffff, 1.0);
+    this.exitDoorGraphics.strokeRect(
+      centerX - doorSize / 2,
+      centerY - doorSize / 2,
+      doorSize,
+      doorSize
+    );
 
     this.exitDoorGraphics.setDepth(1); // Above floor
 
     // Add "EXIT" label
     this.exitDoorUnlockedText = this.add.text(centerX, centerY, "EXIT", {
-      fontSize: "16px",
+      fontSize: "24px",
       color: "#00ff00",
       fontStyle: "bold",
       backgroundColor: "#000000",
-      padding: { x: 4, y: 2 },
+      padding: { x: 8, y: 4 },
       align: "center",
     });
     this.exitDoorUnlockedText.setOrigin(0.5);
@@ -1677,7 +1676,7 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private showPlayerEscapedMessage(playerName: string) {
+  private showPlayerEscapedMessage(playerId: string, playerName: string) {
     // Create a temporary message in the center of the screen
     const centerX = this.cameras.main.width / 2;
     const centerY = this.cameras.main.height / 2;
@@ -1695,11 +1694,13 @@ export class GameScene extends Phaser.Scene {
     border.setStrokeStyle(3, 0xFFD700);
     messageContainer.add(border);
 
+    const isCurrentPlayer = playerId === this.sessionId;
+
     // Message text
     const messageText = this.add.text(
       0,
       -15,
-      playerName === this.sessionId ? "🎉 YOU ESCAPED! 🎉" : `🎉 ${playerName} ESCAPED! 🎉`,
+      isCurrentPlayer ? "🎉 YOU ESCAPED! 🎉" : `🎉 ${playerName} ESCAPED! 🎉`,
       {
         fontSize: "28px",
         color: "#FFD700",
@@ -1714,9 +1715,9 @@ export class GameScene extends Phaser.Scene {
     const subtitle = this.add.text(
       0,
       20,
-      playerName === this.sessionId
-        ? "You successfully completed the heist!"
-        : "The heist was successful!",
+      isCurrentPlayer
+        ? "Waiting for others..."
+        : `${playerName} is safe!`,
       {
         fontSize: "18px",
         color: "#00FF00",

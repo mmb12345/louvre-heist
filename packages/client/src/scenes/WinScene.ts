@@ -36,10 +36,19 @@ export class WinScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    // Restart instruction
-    this.add.text(centerX, centerY + 250, 'Refresh to play again', {
+    // Return to menu message
+    this.add.text(centerX, centerY + 250, 'Returning to menu...', {
       fontSize: '20px',
       color: '#aaaaaa',
     }).setOrigin(0.5);
+
+    // Automatically return to player select after a brief moment
+    this.time.delayedCall(1000, () => {
+      // Stop game music if any
+      this.sound.stopAll();
+
+      // Return to player select scene
+      this.scene.start('PlayerSelectScene');
+    });
   }
 }
